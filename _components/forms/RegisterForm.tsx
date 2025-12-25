@@ -38,7 +38,7 @@ export default function RegisterForm() {
         name="name"
         register={register}
         error={errors.name}
-        placeholder="John Doe"
+        placeholder="Your Name"
       />
 
       <FormInput
