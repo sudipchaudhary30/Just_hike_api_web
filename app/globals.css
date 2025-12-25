@@ -10,7 +10,10 @@ body {
   @apply antialiased;
 }
 
-
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #10b981 #f3f4f6;
+}
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
