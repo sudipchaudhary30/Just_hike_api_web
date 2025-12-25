@@ -11,9 +11,7 @@ export default function LoginPage() {
             <p className="mt-2 text-gray-600">Sign in to your Just Hike account</p>
           </div>
           
-          <Card>
-            <LoginForm />
-          </Card>
+      
           
           <div className="mt-8 text-center text-sm text-gray-600">
             By signing in, you agree to our{' '}
