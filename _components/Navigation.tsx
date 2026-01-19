@@ -72,13 +72,13 @@ export default function Navigation(): JSX.Element {
         {/* AUTH BUTTONS - Open Sans font */}
         <div className="flex items-center space-x-6 flex-shrink-0 font-['Open_Sans']">
           <Link 
-            href="/register" 
+            href="/auth/register" 
             className="text-black hover:text-[#45D1C1] font-medium transition-colors px-4 py-2"
           >
             Sign Up
           </Link>
           <Link 
-            href="/login" 
+            href="/auth/login" 
             className="bg-[#45D1C1] text-white px-6 py-2.5 rounded-full font-medium hover:bg-[#3bbfaf] transition-colors"
           >
             Login

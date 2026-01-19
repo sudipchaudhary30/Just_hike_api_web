@@ -1,4 +1,3 @@
-// app/login/page.tsx
 import LoginForm from '@/_components/forms/LoginForm'
 import Image from 'next/image'
 
@@ -53,7 +52,7 @@ export default function LoginPage() {
           
           {/* Login Form */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8">
-            <LoginForm />
+           <LoginForm/>
           </div>
           
          
