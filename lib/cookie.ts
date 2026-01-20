@@ -14,7 +14,13 @@ export async function getTokenCookie() {
     return cookieStore.get("auth_token")?.value || null;
 }
 
-
+export async function storeUserData(userData: any) {
+    const cookieStore = await cookies();
+    cookieStore.set({
+        name: "user_data",
+        value: JSON.stringify(userData),
+    });
+}
 
 export async function getUserData() {
     const cookieStore = await cookies();
