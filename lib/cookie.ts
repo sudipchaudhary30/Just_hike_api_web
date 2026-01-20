@@ -1,31 +1,34 @@
-"use server"
-import { cookies } from "next/headers"
+"use server";
+import { cookies } from "next/headers";
 
-export const setAuthToken = async (token: string) => {
+export async function setTokenCookie(token: string) {
     const cookieStore = await cookies();
-    cookieStore.set({ name: "auth_token", value: token })
+    cookieStore.set({
+        name: "auth_token",
+        value: token,
+    });
 }
-export const getAuthToken = async () => {
+
+export async function getTokenCookie() {
     const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
-    return token || null;
+    return cookieStore.get("auth_token")?.value || null;
 }
-export const setUserData = async (userData: any) => {
+
+export async function storeUserData(userData: any) {
     const cookieStore = await cookies();
-    // cookie can only store string
-    // convert object to string -> JSON.stringify "{}"
-    cookieStore.set({ name: "user_data", value: JSON.stringify(userData) })
+    cookieStore.set({
+        name: "user_data",
+        value: JSON.stringify(userData),
+    });
 }
-export const getUserData = async () => {
+
+export async function getUserData() {
     const cookieStore = await cookies();
-    const userData = cookieStore.get("user_data")?.value;
-    if (userData) {
-        // convert string to object -> JSON.parse
-        return JSON.parse(userData);
-    }
-    return null;
+    const data = cookieStore.get("user_data")?.value || null;
+    return data ? JSON.parse(data) : null;
 }
-export const clearAuthCookies = async () => {
+
+export async function clearAuthCookies() {
     const cookieStore = await cookies();
     cookieStore.delete("auth_token");
     cookieStore.delete("user_data");
