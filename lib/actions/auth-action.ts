@@ -7,7 +7,15 @@ export async function handleLogin(formData: any) {
   try {
     const res = await login(formData);
     
-    
+    if (res.success && res.token) {
+      // Store in cookies (reference approach)
+      const cookieStore = await cookies();
+      cookieStore.set('auth_token', res.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7 // 7 days
+      });
       
       // Store user data
       cookieStore.set('user_data', JSON.stringify(res.data), {
