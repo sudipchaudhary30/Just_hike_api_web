@@ -1,73 +1,62 @@
-'use server';
-
-import { login, register } from '@/lib/api/auth';
-import { cookies } from 'next/headers';
-
-export async function handleLogin(formData: any) {
-  try {
-    const res = await login(formData);
-    
-    if (res.success && res.token) {
-      // Store in cookies (reference approach)
-      const cookieStore = await cookies();
-      cookieStore.set('auth_token', res.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
-      });
-      
-      // Store user data
-      cookieStore.set('user_data', JSON.stringify(res.data), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7 // 7 days
-      });
-      
-      return {
-        success: true,
-        data: res.data,
-        message: 'Login successful'
-      };
+"use server"
+ 
+import { login, register } from "../api/auth";
+import { setUserData, setAuthToken } from "../cookie";
+ 
+ 
+export const handleRegister = async(fromData: any) => {
+    try{
+        //handle data from component from
+        const result =  await register(fromData);
+        //handle how to send data back to component
+        if(result.success){
+            return{
+                success: true,
+                message: "Registration successful",
+                data: result.data
+            };
+        }
+        return {
+            success: false,
+            message: result.message || "Registration failed"
+        }
+    }catch(err: Error | any){
+        return {
+            success: false, message: err.message || "Registration failed"
+        }
     }
-    
-    return { success: false, message: res.message || 'Login failed' };
-  } catch (err: any) {
-    return { success: false, message: err.message || 'Login failed' };
-  }
 }
-
-export async function handleRegister(registrationData: any) {
-  try {
-    const res = await register(registrationData);
-    
-    if (res.success && res.token) {
-      // Store cookies on registration too
-      const cookieStore = await cookies();
-      cookieStore.set('auth_token', res.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7
-      });
-      
-      cookieStore.set('user_data', JSON.stringify(res.data), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7
-      });
-      
-      return {
-        success: true,
-        data: res.data,
-        message: 'Registration successful'
-      };
+ 
+ 
+export const handleLogin = async(fromData: any) => {
+    try{
+        //handle data from component from
+        console.log('🔵 handleLogin called with:', fromData);
+        const result =  await login(fromData);
+        console.log('🟢 Login API response:', result);
+        
+        //handle how to send data back to component
+        if(result.success){
+            console.log('✅ Setting auth cookies...');
+            await setAuthToken(result.token)
+            await setUserData(result.data)
+           
+            return{
+                success: true,
+                message: "Login successful",
+                data: result.data
+            };
+        }
+        return {
+            success: false,
+            message: result.message || "Login failed"
+        }
+    }catch(err: Error | any){
+        console.error('❌ handleLogin error:', err);
+        return {
+            success: false, message: err.message || "Login failed"
+        }
     }
-    
-    return { success: false, message: res.message || 'Registration failed' };
-  } catch (err: any) {
-    return { success: false, message: err.message || 'Registration failed' };
-  }
 }
+ 
+ 

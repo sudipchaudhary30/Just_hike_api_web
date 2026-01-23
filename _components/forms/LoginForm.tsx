@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { handleLogin } from '@/lib/actions/auth-action';
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -14,8 +15,6 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,29 +36,16 @@ export default function LoginForm() {
     try {
       console.log('Logging in...');
       
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+      const result = await handleLogin({
+        email: formData.email,
+        password: formData.password,
       });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      if (!result.success) {
+        throw new Error(result.message || 'Login failed');
       }
 
-      console.log('✅ Login successful:', data);
-      
-      // Store token and user data
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('user_data', JSON.stringify(data.data));
-      
+      console.log('✅ Login successful:', result.data);
       router.push('/dashboard');
       
     } catch (err: any) {

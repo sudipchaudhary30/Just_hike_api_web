@@ -1,35 +1,44 @@
-"use server";
-import { cookies } from "next/headers";
-
-export async function setTokenCookie(token: string) {
+"use server"
+import { cookies } from "next/headers"
+ 
+export const setAuthToken = async (token: string) => {
     const cookieStore = await cookies();
     cookieStore.set({
         name: "auth_token",
         value: token,
-    });
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7 // 7 days
+    })
 }
-
-export async function getTokenCookie() {
+export const getAuthToken = async () => {
     const cookieStore = await cookies();
-    return cookieStore.get("auth_token")?.value || null;
+    const token = cookieStore.get("auth_token")?.value;
+    return token || null;
 }
-
-export async function storeUserData(userData: any) {
+export const setUserData = async (userData: any) => {
     const cookieStore = await cookies();
     cookieStore.set({
         name: "user_data",
         value: JSON.stringify(userData),
-    });
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7 // 7 days
+    })
 }
-
-export async function getUserData() {
+export const getUserData = async () => {
     const cookieStore = await cookies();
-    const data = cookieStore.get("user_data")?.value || null;
-    return data ? JSON.parse(data) : null;
+    const userData = cookieStore.get("user_data")?.value;
+    if (userData) {
+        return JSON.parse(userData);
+    }
+    return null;
 }
-
-export async function clearAuthCookies() {
+export const clearAuthCookies = async () => {
     const cookieStore = await cookies();
     cookieStore.delete("auth_token");
     cookieStore.delete("user_data");
 }
+ 
