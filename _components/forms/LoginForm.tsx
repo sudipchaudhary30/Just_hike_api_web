@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { handleLogin } from '@/lib/actions/auth-action';
+import { useAuth } from '@/_components/auth/AuthProvider';
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -15,6 +15,7 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,19 +35,17 @@ export default function LoginForm() {
     }
 
     try {
-      console.log('Logging in...');
+      const success = await login(formData.email, formData.password);
       
-      const result = await handleLogin({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (!result.success) {
-        throw new Error(result.message || 'Login failed');
+      if (success) {
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          router.push('/dashboard');
+          router.refresh();
+        }, 100);
+      } else {
+        setError('Login failed. Please check your credentials.');
       }
-
-      console.log('✅ Login successful:', result.data);
-      router.push('/dashboard');
       
     } catch (err: any) {
       console.error('Login error:', err);
@@ -62,29 +61,19 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-8">
-      {/* Header */}
-      <div className="mb-12 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          Welcome Back 👋
-        </h1>
-        <p className="text-gray-600 text-base">
-          Continue with Google or Enter Login Details
-        </p>
-      </div>
-
+    <div className="w-full">
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+        <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-sm text-red-400">
           <strong>Error:</strong> {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* Google Sign In Button */}
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="w-full py-3.5 px-6 bg-white border border-gray-300 rounded-full font-normal text-gray-700 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-3"
+          className="w-full py-3 px-6 bg-slate-700/50 border border-slate-600/50 rounded-lg font-normal text-slate-200 hover:bg-slate-600/50 hover:border-slate-500/50 transition-all duration-200 flex items-center justify-center gap-3"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -96,18 +85,18 @@ export default function LoginForm() {
         </button>
 
         {/* Divider */}
-        <div className="relative">
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-slate-700/50"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-white text-gray-500">or</span>
+            <span className="px-3 bg-slate-800/50 text-slate-500">or</span>
           </div>
         </div>
 
         {/* Email Input */}
         <div>
-          <label className="block text-sm font-normal text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
             Email Address
           </label>
           <input
@@ -115,8 +104,8 @@ export default function LoginForm() {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-0 py-3 border-b-2 border-gray-300 focus:border-[#45D1C1] outline-none transition-colors bg-transparent text-gray-900"
-            placeholder=""
+            className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg focus:border-green-500/50 focus:bg-slate-700/70 outline-none transition-all text-white placeholder-slate-500"
+            placeholder="you@example.com"
             disabled={isLoading}
             required
           />
@@ -124,7 +113,7 @@ export default function LoginForm() {
 
         {/* Password Input */}
         <div>
-          <label className="block text-sm font-normal text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-slate-300 mb-2">
             Password
           </label>
           <div className="relative">
@@ -133,17 +122,17 @@ export default function LoginForm() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-0 py-3 border-b-2 border-gray-300 focus:border-[#45D1C1] outline-none pr-10 transition-colors bg-transparent text-gray-900"
-              placeholder=""
+              className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg focus:border-green-500/50 focus:bg-slate-700/70 outline-none transition-all text-white placeholder-slate-500 pr-10"
+              placeholder="••••••••"
               disabled={isLoading}
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-500 hover:text-slate-400 transition-colors"
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
         </div>
@@ -153,15 +142,15 @@ export default function LoginForm() {
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
-              className="h-4 w-4 text-[#45D1C1] border-gray-300 rounded focus:ring-[#45D1C1] cursor-pointer"
+              className="h-4 w-4 bg-slate-700 border border-slate-600 rounded focus:ring-green-500 cursor-pointer accent-green-500"
             />
-            <span className="ml-2 text-sm text-gray-700">Remember me</span>
+            <span className="ml-2 text-sm text-slate-400">Remember me</span>
           </label>
           <Link 
             href="/forgot-password" 
-            className="text-sm text-[#45D1C1] hover:text-[#2AAB9B] font-normal transition-colors"
+            className="text-sm text-green-400 hover:text-green-300 font-medium transition-colors"
           >
-            Forget Password?
+            Forgot password?
           </Link>
         </div>
 
@@ -169,31 +158,20 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-4 bg-gradient-to-r from-[#45D1C1]  text-white font-medium rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md mt-12"
+          className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
         >
           {isLoading ? (
-            <span className="flex items-center justify-center">
-              <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Logging in...
+              Signing in...
             </span>
           ) : (
-            'Log In'
+            'Sign In'
           )}
         </button>
-
-        {/* Register Link */}
-        <div className="text-center text-base text-gray-700 pt-4">
-          Don't have an account yet?{' '}
-          <Link 
-            href="/register" 
-            className="text-[#45D1C1] font-normal hover:text-[#2AAB9B] transition-colors"
-          >
-            Create account
-          </Link>
-        </div>
       </form>
     </div>
   );
