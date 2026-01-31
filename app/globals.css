@@ -3,11 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --primary: #10b981;
+  --primary: #2dd4bf;
+  --surface: #ffffff;
+  --text: #0f172a;
 }
 
 body {
-  @apply antialiased;
+  @apply antialiased bg-slate-50 text-slate-900;
 }
 
 .custom-scrollbar {

@@ -1,0 +1,9 @@
+/* globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure consistent font application */
+* {
+  font-family: var(--font-open-sans), system-ui, sans-serif;
+}
