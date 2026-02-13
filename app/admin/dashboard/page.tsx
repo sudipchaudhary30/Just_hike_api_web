@@ -328,7 +328,7 @@ function AdminDashboardPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 mb-1">Poon Hill Trek</h3>
                   <div className="flex items-center gap-1 mb-1">
-                    <span className=\"text-yellow-400\">5/5</span>
+                    <span className="text-yellow-400">5/5</span>
                   </div>
                   <p className="text-sm font-bold text-gray-800">Rs 25,000</p>
                 </div>
@@ -340,7 +340,7 @@ function AdminDashboardPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 mb-1">Mt Everest Base Camp</h3>
                   <div className="flex items-center gap-1 mb-1">
-                    <span className=\"text-yellow-400\">5/5</span>
+                    <span className="text-yellow-400">5/5</span>
                   </div>
                   <p className="text-sm font-bold text-gray-800">Rs 49,000</p>
                 </div>
@@ -352,7 +352,7 @@ function AdminDashboardPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 mb-1">Annapurna Circuit</h3>
                   <div className="flex items-center gap-1 mb-1">
-                    <span className=\"text-yellow-400\">5/5</span>
+                    <span className="text-yellow-400">5/5</span>
                   </div>
                   <p className="text-sm font-bold text-gray-800">Rs 38,000</p>
                 </div>

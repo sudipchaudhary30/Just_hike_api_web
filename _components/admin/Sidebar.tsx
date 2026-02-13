@@ -172,7 +172,7 @@ export default function Sidebar({ logoUrl }: SidebarProps) {
               <span className={`text-xl flex-shrink-0 transition-transform group-hover:scale-110 ${
                 collapsed ? 'mx-auto' : ''
               }`}>
-                {item.icon}
+                <item.icon className="w-5 h-5" aria-hidden="true" />
               </span>
               {!collapsed && (
                 <>
