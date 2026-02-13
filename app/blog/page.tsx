@@ -67,10 +67,10 @@ export default function BlogPage() {
             </p>
             <div className="flex justify-center gap-4 flex-wrap">
               <button className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-green-500/50 transition-all duration-300 transform hover:scale-105">
-                Latest Articles ✍️
+                Latest Articles
               </button>
               <button className="px-8 py-3 border border-green-500/30 text-green-400 rounded-lg font-semibold hover:border-green-400 hover:bg-green-500/10 transition-all duration-300">
-                Browse Categories 📚
+                Browse Categories
               </button>
             </div>
           </div>
@@ -102,13 +102,13 @@ export default function BlogPage() {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-green-600 to-blue-600 flex items-center justify-center">
-                          <span className="text-white text-8xl">📝</span>
+                          <span className="text-white text-4xl font-bold">DOC</span>
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       <div className="absolute bottom-0 left-0 right-0 p-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                         <span className="inline-block px-4 py-2 bg-green-500/90 backdrop-blur-md text-white rounded-full text-sm font-semibold mb-4">
-                          ⭐ Featured
+                          Featured
                         </span>
                         <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 line-clamp-2">
                           {blogs[0].title}
@@ -147,7 +147,7 @@ export default function BlogPage() {
                             />
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-green-600 to-blue-600 flex items-center justify-center">
-                              <span className="text-white text-5xl">📝</span>
+                              <span className="text-white text-3xl font-bold">DOC</span>
                             </div>
                           )}
                         </div>
@@ -193,7 +193,7 @@ export default function BlogPage() {
           </>
         ) : (
           <div className="text-center py-20">
-            <span className="text-6xl mb-4 block">📖</span>
+            <span className="text-4xl mb-4 block font-bold">No Articles</span>
             <p className="text-slate-400 text-lg">No blog posts found</p>
           </div>
         )}

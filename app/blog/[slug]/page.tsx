@@ -78,7 +78,7 @@ export default function BlogDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <span className="text-6xl block mb-4">📄</span>
+          <span className="text-4xl block mb-4 font-bold">Not Found</span>
           <p className="text-slate-400 text-lg">Blog post not found</p>
           <Link href="/blog" className="text-green-400 hover:text-green-300 mt-6 inline-block font-semibold">
             ← Back to Blog
@@ -121,7 +121,7 @@ export default function BlogDetailPage() {
           {/* Status Badge */}
           <div className="mb-6">
             <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-full text-xs font-bold uppercase tracking-wide">
-              {blog.status === 'published' ? '✓ Published' : '📝 Draft'}
+              {blog.status === 'published' ? 'Published' : 'Draft'}
             </span>
           </div>
 
@@ -148,7 +148,7 @@ export default function BlogDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 text-slate-400 text-sm">
-              <span>📖</span>
+              <span>Read</span>
               <span>5 min read</span>
             </div>
           </div>
@@ -211,10 +211,10 @@ export default function BlogDetailPage() {
               𝕏
             </button>
             <button className="w-12 h-12 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center hover:border-green-500/50 hover:bg-green-600/20 transition-all text-xl">
-              📘
+              FB
             </button>
             <button className="w-12 h-12 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center hover:border-green-500/50 hover:bg-green-600/20 transition-all text-xl">
-              🔗
+              Link
             </button>
           </div>
         </div>

@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/middleware/adminMiddleware';
 import { parseFormData, saveFile } from '@/lib/utils/multer';
+import mongoose from 'mongoose';
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/just_hike';
+
+async function connectToDatabase() {
+  if (mongoose.connection.readyState === 1) return;
+  await mongoose.connect(MONGODB_URI);
+}
 
 /**
  * GET /api/admin/users/:id
@@ -29,26 +37,31 @@ export async function GET(
       );
     }
 
-    // TODO: Replace with your actual database query
-    // Example: const user = await prisma.user.findUnique({ where: { id: userId } });
-    
-    // Mock response for demonstration
-    const user = {
-      id: userId,
-      name: 'Name',
-      email: 'john@example.com',
-      role: 'user',
-      image: '/uploads/users/user-123.png',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    // Connect to database
+    await connectToDatabase();
+    const UserModel = mongoose.models.User || mongoose.model('User', new mongoose.Schema({}, { strict: false, collection: 'users' }));
 
-    if (!user) {
+    // Query MongoDB
+    const userDoc = await UserModel.findById(userId).lean();
+
+    if (!userDoc) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
+
+    // Transform MongoDB _id to id
+    const user = {
+      id: userDoc._id.toString(),
+      name: userDoc.name,
+      email: userDoc.email,
+      role: userDoc.role,
+      phoneNumber: userDoc.phoneNumber,
+      profilePicture: userDoc.profilePicture,
+      createdAt: userDoc.createdAt || new Date().toISOString(),
+      updatedAt: userDoc.updatedAt || new Date().toISOString(),
+    };
 
     return NextResponse.json({ user }, { status: 200 });
   } catch (error: any) {
@@ -88,6 +101,10 @@ export async function PUT(
       );
     }
 
+    // Connect to database
+    await connectToDatabase();
+    const UserModel = mongoose.models.User || mongoose.model('User', new mongoose.Schema({}, { strict: false, collection: 'users' }));
+
     const contentType = request.headers.get('content-type') || '';
     let updateData: any = {};
     let imageUrl: string | null = null;
@@ -100,31 +117,46 @@ export async function PUT(
       // Save the uploaded image if present
       if (file) {
         imageUrl = await saveFile(file);
-        updateData.image = imageUrl;
+        updateData.profilePicture = imageUrl;
       }
     } else {
       // Handle JSON data (without image)
       updateData = await request.json();
     }
 
-    // TODO: Replace with your actual database update
-    // Example: const updatedUser = await prisma.user.update({
-    //   where: { id: userId },
-    //   data: updateData
-    // });
-    
-    // Mock response for demonstration
-    const updatedUser = {
-      id: userId,
-      ...updateData,
-      password: undefined, // Don't return password
-      updatedAt: new Date().toISOString(),
+    // Don't allow updating password this way (use separate endpoint)
+    delete updateData.password;
+
+    // Update user in database
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      { ...updateData, updatedAt: new Date() },
+      { new: true, lean: true }
+    );
+
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Transform response
+    const safeUser = {
+      id: updatedUser._id.toString(),
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      phoneNumber: updatedUser.phoneNumber,
+      profilePicture: updatedUser.profilePicture,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt,
     };
 
     return NextResponse.json(
       {
         message: 'User updated successfully',
-        user: updatedUser,
+        user: safeUser,
       },
       { status: 200 }
     );
@@ -164,14 +196,25 @@ export async function DELETE(
       );
     }
 
-    // TODO: Replace with your actual database deletion
-    // Example: await prisma.user.delete({ where: { id: userId } });
-    
-    // Optional: Delete user's profile image from filesystem
-    // const user = await prisma.user.findUnique({ where: { id: userId } });
-    // if (user?.image) {
+    // Connect to database
+    await connectToDatabase();
+    const UserModel = mongoose.models.User || mongoose.model('User', new mongoose.Schema({}, { strict: false, collection: 'users' }));
+
+    // Delete user from database
+    const deletedUser = await UserModel.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // TODO: Delete user's profile image from filesystem if it exists
+    // if (deletedUser.profilePicture) {
     //   const fs = require('fs').promises;
-    //   const imagePath = path.join(process.cwd(), 'public', user.image);
+    //   const path = require('path');
+    //   const imagePath = path.join(process.cwd(), 'public', deletedUser.profilePicture);
     //   await fs.unlink(imagePath).catch(() => {});
     // }
 

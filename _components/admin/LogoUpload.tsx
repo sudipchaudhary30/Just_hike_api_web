@@ -60,7 +60,7 @@ export default function LogoUpload({ onLogoChange, currentLogo }: LogoUploadProp
           </div>
         ) : (
           <div className="text-center">
-            <span className="text-5xl block mb-2">📸</span>
+            <span className="text-lg block mb-2 font-bold text-slate-400">LOGO</span>
             <p className="text-slate-400 font-semibold">Click to upload logo</p>
             <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
           </div>

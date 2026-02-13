@@ -26,28 +26,40 @@ function AdminTreksPage() {
   const fetchTreks = async () => {
     try {
       setIsLoading(true);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${API_BASE_URL}/api/treks`, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch('/api/admin/trek-packages', {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch treks: ${response.statusText}`);
+      }
+      
       const data = await response.json();
-      const mapped: TrekAdminListItem[] = (data.data || []).map((trek: any) => ({
-        id: trek._id,
-        title: trek.title,
+      const mapped: TrekAdminListItem[] = (data.packages || []).map((trek: any) => ({
+        id: trek._id || trek.id,
+        title: trek.title || trek.name,
         location: trek.location,
-        durationDays: trek.durationDays,
+        durationDays: trek.durationDays || trek.duration,
         price: trek.price,
         difficulty: trek.difficulty,
-        imageUrl: trek.imageUrl,
-        thumbnailUrl: trek.thumbnailUrl,
+        imageUrl: trek.imageUrl || trek.image,
+        thumbnailUrl: trek.thumbnailUrl || trek.image,
         isActive: trek.isActive,
       }));
       setTreks(mapped);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching treks:', error);
+      if (error.name === 'AbortError') {
+        console.error('Request timed out');
+      }
+      setTreks([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
@@ -57,13 +69,10 @@ function AdminTreksPage() {
     if (!confirm('Are you sure you want to delete this trek package?')) return;
 
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${API_BASE_URL}/api/treks/${id}`, {
+      const response = await fetch(`/api/admin/trek-packages/${id}`, {
         method: 'DELETE',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
       });
 
       if (response.ok) {
@@ -139,10 +148,10 @@ function AdminTreksPage() {
                                 className="h-12 w-12 rounded object-cover"
                               />
                             ) : (
-                              <div className="h-12 w-12 rounded bg-green-100 flex items-center justify-center">
-                                🏔️
+                              <div className="h-12 w-12 rounded bg-green-100 flex items-center justify-center text-xs font-semibold text-green-600">
+                                TRK
                               </div>
-                            )}
+                            )}}
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{trek.title}</div>

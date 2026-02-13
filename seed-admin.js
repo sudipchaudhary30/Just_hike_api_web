@@ -28,9 +28,9 @@ const User = mongoose.model('User', userSchema);
 
 async function seedAdmin() {
   try {
-    console.log('🔌 Connecting to MongoDB...');
+    console.log('Connecting to MongoDB...');
     await mongoose.connect(MONGODB_URI);
-    console.log('✅ Connected to MongoDB\n');
+    console.log('Connected to MongoDB\n');
 
     // Check if admin already exists
     const existingAdmin = await User.findOne({ email: DEFAULT_ADMIN.email });
@@ -44,11 +44,11 @@ async function seedAdmin() {
       if (existingAdmin.role !== 'admin') {
         existingAdmin.role = 'admin';
         await existingAdmin.save();
-        console.log('✅ Updated existing user to admin role\n');
+        console.log('Updated existing user to admin role\n');
       }
     } else {
       // Create new admin account
-      console.log('👤 Creating default admin account...');
+      console.log('Creating default admin account...');
       
       const hashedPassword = await bcrypt.hash(DEFAULT_ADMIN.password, 10);
       
@@ -61,23 +61,23 @@ async function seedAdmin() {
       
       await admin.save();
       
-      console.log('✅ Admin account created successfully!\n');
+      console.log('Admin account created successfully!\n');
     }
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🎉 DEFAULT ADMIN CREDENTIALS');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('📧 Email:    admin@justhike.com');
-    console.log('🔐 Password: admin123');
-    console.log('🌐 Login:    http://localhost:3000/auth/login');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    console.log('⚠️  IMPORTANT: Change this password in production!');
+    console.log('========================== ==========================');
+    console.log('DEFAULT ADMIN CREDENTIALS');
+    console.log('========================== ==========================');
+    console.log('Email:    admin@justhike.com');
+    console.log('Password: admin123');
+    console.log('Login:    http://localhost:3000/admin/login');
+    console.log('========================== ==========================\n');
+    console.log('IMPORTANT: Change this password in production!');
     
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('Error:', error.message);
   } finally {
     await mongoose.disconnect();
-    console.log('\n👋 Disconnected from MongoDB');
+    console.log('\nDisconnected from MongoDB');
     process.exit();
   }
 }

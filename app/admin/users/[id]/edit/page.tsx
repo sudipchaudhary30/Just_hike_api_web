@@ -41,7 +41,14 @@ export default function AdminUserEditPage() {
   const fetchUser = async () => {
     try {
       setIsLoading(true);
+      const headers: HeadersInit = {};
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`/api/admin/users/${userId}`, {
+        headers,
         credentials: 'include',
       });
 
@@ -51,16 +58,17 @@ export default function AdminUserEditPage() {
         throw new Error(result.error || 'Failed to fetch user');
       }
 
-      // Set form values
+      // Set form values from the user object
+      const user = result.user;
       reset({
-        name: result.user.name,
-        email: result.user.email,
-        role: result.user.role,
-        phoneNumber: result.user.phoneNumber || '',
+        name: user.name || '',
+        email: user.email || '',
+        role: user.role || 'user',
+        phoneNumber: user.phoneNumber || '',
       });
 
-      if (result.user.image) {
-        setPreviewImage(result.user.image);
+      if (user.profilePicture) {
+        setPreviewImage(user.profilePicture);
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch user');
@@ -97,8 +105,15 @@ export default function AdminUserEditPage() {
         formData.append('image', data.image[0]);
       }
 
+      const headers: HeadersInit = {};
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: 'PUT',
+        headers,
         body: formData,
         credentials: 'include',
       });
@@ -162,7 +177,7 @@ export default function AdminUserEditPage() {
                     />
                   ) : (
                     <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-green-600">
-                      <span className="text-4xl text-gray-500">👤</span>
+                      <span className="text-3xl text-gray-500 font-bold">U</span>
                     </div>
                   )}
                 </div>
@@ -197,7 +212,7 @@ export default function AdminUserEditPage() {
                   type="email"
                   register={register}
                   error={errors.email}
-                  placeholder="john@example.com"
+                  placeholder="user@example.com"
                   required
                 />
 

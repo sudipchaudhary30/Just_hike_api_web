@@ -28,11 +28,23 @@ function AdminGuidesPage() {
       setIsLoading(true);
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
       const token = localStorage.getItem('auth_token');
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
       const response = await fetch(`${API_BASE_URL}/api/guides`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch guides: ${response.statusText}`);
+      }
+      
       const data = await response.json();
       const mapped: GuideAdminItem[] = (data.data || []).map((guide: any) => ({
         id: guide._id,
@@ -45,8 +57,12 @@ function AdminGuidesPage() {
         imageUrl: guide.imageUrl,
       }));
       setGuides(mapped);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching guides:', error);
+      if (error.name === 'AbortError') {
+        console.error('Request timed out');
+      }
+      setGuides([]);
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +126,7 @@ function AdminGuidesPage() {
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                      <span className="text-white text-5xl">👤</span>
+                      <span className="text-white text-sm font-semibold">USR</span>
                     </div>
                   )}
                 </div>
@@ -122,19 +138,19 @@ function AdminGuidesPage() {
 
                   <div className="space-y-2 text-sm mb-4">
                     <div className="flex items-center text-gray-700">
-                      <span className="font-medium mr-2">📧</span>
+                      <span className="font-medium mr-2">Email:</span>
                       <span>{guide.email}</span>
                     </div>
                     <div className="flex items-center text-gray-700">
-                      <span className="font-medium mr-2">📞</span>
+                      <span className="font-medium mr-2">Phone:</span>
                       <span>{guide.phoneNumber}</span>
                     </div>
                     <div className="flex items-center text-gray-700">
-                      <span className="font-medium mr-2">⭐</span>
+                      <span className="font-medium mr-2">Exp:</span>
                       <span>{guide.experienceYears} years of experience</span>
                     </div>
                     <div className="flex items-center text-gray-700">
-                      <span className="font-medium mr-2">🗣️</span>
+                      <span className="font-medium mr-2">Lang:</span>
                       <span>{guide.languages.join(', ')}</span>
                     </div>
                   </div>

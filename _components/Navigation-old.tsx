@@ -94,7 +94,7 @@ export default function Navigation(): JSX.Element {
                 href="/admin/login" 
                 className="text-gray-500 hover:text-green-600 transition-colors px-2 font-medium text-sm"
               >
-                🔐 Admin
+                Admin
               </Link>
             )}
             

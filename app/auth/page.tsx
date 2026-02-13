@@ -107,7 +107,7 @@ export default function RegisterPage() {
         <div className="absolute top-8 left-8 z-10">
           <Link href="/" className="text-white text-2xl font-bold flex items-center gap-2">
             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              🏔️
+              H
             </div>
             <span className="drop-shadow-lg">JustHike</span>
           </Link>
@@ -120,7 +120,7 @@ export default function RegisterPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Hi, Get Started Now 👋
+              Hi, Get Started Now
             </h1>
             <p className="text-gray-600">Enter details to create your JustHike account</p>
           </div>

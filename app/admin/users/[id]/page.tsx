@@ -33,7 +33,14 @@ export default function AdminUserDetailPage() {
   const fetchUser = async () => {
     try {
       setIsLoading(true);
+      const headers: HeadersInit = {};
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`/api/admin/users/${userId}`, {
+        headers,
         credentials: 'include',
       });
 
@@ -58,8 +65,15 @@ export default function AdminUserDetailPage() {
     }
 
     try {
+      const headers: HeadersInit = {};
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
+        headers,
         credentials: 'include',
       });
 

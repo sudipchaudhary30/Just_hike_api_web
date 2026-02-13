@@ -112,7 +112,7 @@ export default function TrekDetailPage() {
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-            <span className="text-white text-9xl">🏔️</span>
+            <span className="text-white text-2xl font-semibold">TREK</span>
           </div>
         )}
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
@@ -142,21 +142,21 @@ export default function TrekDetailPage() {
               
               <div className="grid md:grid-cols-2 gap-4 mt-6">
                 <div className="flex items-center">
-                  <span className="text-2xl mr-3">📍</span>
+                  <span className="text-lg mr-3">▼</span>
                   <div>
                     <p className="text-sm text-gray-500">Location</p>
                     <p className="font-semibold">{trek.location}</p>
                   </div>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-2xl mr-3">📅</span>
+                  <span className="text-2xl mr-3 font-bold">D</span>
                   <div>
                     <p className="text-sm text-gray-500">Duration</p>
                     <p className="font-semibold">{trek.durationDays} days</p>
                   </div>
                 </div>
                 <div className="flex items-center">
-                  <span className="text-2xl mr-3">👥</span>
+                  <span className="text-2xl mr-3 font-bold">P</span>
                   <div>
                     <p className="text-sm text-gray-500">Max Group Size</p>
                     <p className="font-semibold">{trek.maxGroupSize} people</p>

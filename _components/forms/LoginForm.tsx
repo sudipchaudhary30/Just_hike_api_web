@@ -35,22 +35,23 @@ export default function LoginForm() {
     }
 
     try {
-      const success = await login(formData.email, formData.password);
+      const result = await login(formData.email, formData.password);
       
-      if (success) {
-        // Small delay to ensure state is updated
-        setTimeout(() => {
-          router.push('/dashboard');
-          router.refresh();
-        }, 100);
+      if (result.success) {
+        // Navigate based on user role
+        const redirectPath = result.user?.role === 'admin' ? '/admin/dashboard' : '/dashboard';
+        
+        // Don't set loading to false - let redirect happen
+        router.push(redirectPath);
+        router.refresh();
       } else {
         setError('Login failed. Please check your credentials.');
+        setIsLoading(false);
       }
       
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Login failed. Please check your credentials.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -147,7 +148,7 @@ export default function LoginForm() {
             <span className="ml-2 text-sm text-slate-400">Remember me</span>
           </label>
           <Link 
-            href="/forgot-password" 
+            href="/auth/forgot-password" 
             className="text-sm text-green-400 hover:text-green-300 font-medium transition-colors"
           >
             Forgot password?

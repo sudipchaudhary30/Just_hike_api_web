@@ -1,6 +1,7 @@
 'use client';
 
 import Card from '@/_components/ui/Card';
+import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { 
   Mountain, 
   Map, 
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [activeFilter, setActiveFilter] = useState('month');
 
   const stats = [
@@ -453,5 +454,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   );
 }

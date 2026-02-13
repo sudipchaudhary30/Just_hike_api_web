@@ -17,7 +17,7 @@ export default function Footer() {
           
           <div className="text-center text-sm text-gray-600">
             <p>© {currentYear} Just Hike. All rights reserved.</p>
-            <p className="mt-1">Built with ❤️ for hikers worldwide</p>
+            <p className="mt-1">Built with passion for hikers worldwide</p>
           </div>
         </div>
       </div>

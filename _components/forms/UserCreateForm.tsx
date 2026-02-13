@@ -21,7 +21,7 @@ export default function UserCreateForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const router = useRouter();
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+  const API_BASE_URL = '';
 
   const {
     register,
@@ -77,7 +77,7 @@ export default function UserCreateForm() {
       const headers = getAuthHeaders(token);
       console.log('[UserCreateForm] Sending request with headers:', headers);
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/user`, {
+      const response = await fetch(`/api/auth/user`, {
         method: 'POST',
         body: formData,
         headers: headers,
@@ -114,7 +114,7 @@ export default function UserCreateForm() {
             />
           ) : (
             <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-green-600">
-              <span className="text-4xl text-gray-500">👤</span>
+              <span className="text-sm font-semibold text-gray-500">USR</span>
             </div>
           )}
         </div>
@@ -149,7 +149,7 @@ export default function UserCreateForm() {
           type="email"
           register={register}
           error={errors.email}
-          placeholder="john@example.com"
+          placeholder="user@example.com"
           required
         />
 

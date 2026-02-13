@@ -39,21 +39,48 @@ function AdminDashboardPage() {
       const token = localStorage.getItem('auth_token');
       const authHeaders: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const [usersRes, treksRes, guidesRes, blogRes, bookingsRes] = await Promise.all([
-        fetch('/api/admin/users'),
-        fetch(`${API_BASE_URL}/api/treks`, { headers: authHeaders }),
-        fetch(`${API_BASE_URL}/api/guides`, { headers: authHeaders }),
-        fetch(`${API_BASE_URL}/api/blogs/admin/all`, { headers: authHeaders }),
-        fetch(`${API_BASE_URL}/api/bookings/admin/all`, { headers: authHeaders }),
-      ]);
+      // Fetch users with timeout
+      const fetchWithTimeout = (url: string, options: any, timeout = 5000) => {
+        return Promise.race([
+          fetch(url, options),
+          new Promise<Response>((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout')), timeout)
+          )
+        ]);
+      };
 
-      const [usersData, treksData, guidesData, blogData, bookingsData] = await Promise.all([
-        usersRes.json(),
-        treksRes.json(),
-        guidesRes.json(),
-        blogRes.json(),
-        bookingsRes.json(),
-      ]);
+      // Fetch users (required)
+      let usersData: any = { users: [] };
+      try {
+        const usersRes = await fetchWithTimeout('/api/admin/users', {
+          headers: { ...authHeaders, 'Content-Type': 'application/json' },
+          credentials: 'include',
+        });
+        if (usersRes.ok) {
+          usersData = await usersRes.json();
+        }
+      } catch (err) {
+        console.error('Failed to fetch users:', err);
+      }
+
+      // Fetch other stats (optional - don't block on failures)
+      const fetchOptionalStats = async () => {
+        const results = await Promise.allSettled([
+          fetchWithTimeout(`${API_BASE_URL}/api/treks`, { headers: authHeaders }).then(r => r.json()).catch(() => ({ data: [] })),
+          fetchWithTimeout(`${API_BASE_URL}/api/guides`, { headers: authHeaders }).then(r => r.json()).catch(() => ({ data: [] })),
+          fetchWithTimeout(`${API_BASE_URL}/api/blogs/admin/all`, { headers: authHeaders }).then(r => r.json()).catch(() => ({ data: [] })),
+          fetchWithTimeout(`${API_BASE_URL}/api/bookings/admin/all`, { headers: authHeaders }).then(r => r.json()).catch(() => ({ data: [] })),
+        ]);
+
+        return {
+          treksData: results[0].status === 'fulfilled' ? results[0].value : { data: [] },
+          guidesData: results[1].status === 'fulfilled' ? results[1].value : { data: [] },
+          blogData: results[2].status === 'fulfilled' ? results[2].value : { data: [] },
+          bookingsData: results[3].status === 'fulfilled' ? results[3].value : { data: [] },
+        };
+      };
+
+      const { treksData, guidesData, blogData, bookingsData } = await fetchOptionalStats();
 
       setStats({
         totalUsers: usersData.users?.length || 0,
@@ -64,6 +91,14 @@ function AdminDashboardPage() {
       });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
+      // Set default stats on error
+      setStats({
+        totalUsers: 0,
+        totalTreks: 0,
+        totalBookings: 0,
+        totalGuides: 0,
+        totalBlogPosts: 0,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +144,7 @@ function AdminDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🏔️</span>
+                <span className="text-sm font-semibold text-blue-600">TRK</span>
               </div>
             </div>
             <div>
@@ -122,7 +157,7 @@ function AdminDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">📅</span>
+                <span className="text-sm font-semibold text-orange-600">BKG</span>
               </div>
             </div>
             <div>
@@ -135,7 +170,7 @@ function AdminDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">👥</span>
+                <span className="text-sm font-semibold text-purple-600">USR</span>
               </div>
             </div>
             <div>
@@ -148,7 +183,7 @@ function AdminDashboardPage() {
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                <span className="text-2xl">🧭</span>
+                <span className="text-sm font-semibold text-teal-600">GDE</span>
               </div>
             </div>
             <div>
@@ -293,7 +328,7 @@ function AdminDashboardPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 mb-1">Poon Hill Trek</h3>
                   <div className="flex items-center gap-1 mb-1">
-                    <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
+                    <span className=\"text-yellow-400\">5/5</span>
                   </div>
                   <p className="text-sm font-bold text-gray-800">Rs 25,000</p>
                 </div>
@@ -305,7 +340,7 @@ function AdminDashboardPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 mb-1">Mt Everest Base Camp</h3>
                   <div className="flex items-center gap-1 mb-1">
-                    <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
+                    <span className=\"text-yellow-400\">5/5</span>
                   </div>
                   <p className="text-sm font-bold text-gray-800">Rs 49,000</p>
                 </div>
@@ -317,7 +352,7 @@ function AdminDashboardPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 mb-1">Annapurna Circuit</h3>
                   <div className="flex items-center gap-1 mb-1">
-                    <span className="text-yellow-400">⭐⭐⭐⭐⭐</span>
+                    <span className=\"text-yellow-400\">5/5</span>
                   </div>
                   <p className="text-sm font-bold text-gray-800">Rs 38,000</p>
                 </div>
@@ -335,7 +370,7 @@ function AdminDashboardPage() {
               className="group bg-white hover:bg-teal-50 border-2 border-gray-100 hover:border-teal-400 rounded-xl p-6 transition-all duration-300 text-left shadow-sm"
             >
               <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-2xl">➕</span>
+                <span className="text-2xl">+</span>
               </div>
               <h3 className="font-bold text-gray-800 mb-1">Add Trek</h3>
               <p className="text-sm text-gray-500">Create new trek package</p>
@@ -346,7 +381,7 @@ function AdminDashboardPage() {
               className="group bg-white hover:bg-blue-50 border-2 border-gray-100 hover:border-blue-400 rounded-xl p-6 transition-all duration-300 text-left shadow-sm"
             >
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-2xl">👤</span>
+                <span className="text-2xl font-bold">G</span>
               </div>
               <h3 className="font-bold text-gray-800 mb-1">Add Guide</h3>
               <p className="text-sm text-gray-500">Register new guide</p>
@@ -357,7 +392,7 @@ function AdminDashboardPage() {
               className="group bg-white hover:bg-purple-50 border-2 border-gray-100 hover:border-purple-400 rounded-xl p-6 transition-all duration-300 text-left shadow-sm"
             >
               <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-2xl">✍️</span>
+                <span className="text-2xl font-bold">B</span>
               </div>
               <h3 className="font-bold text-gray-800 mb-1">Write Blog</h3>
               <p className="text-sm text-gray-500">Create blog post</p>
@@ -368,7 +403,7 @@ function AdminDashboardPage() {
               className="group bg-white hover:bg-orange-50 border-2 border-gray-100 hover:border-orange-400 rounded-xl p-6 transition-all duration-300 text-left shadow-sm"
             >
               <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-2xl">👨‍💼</span>
+                <span className="text-2xl font-bold">U</span>
               </div>
               <h3 className="font-bold text-gray-800 mb-1">Add User</h3>
               <p className="text-sm text-gray-500">Create user account</p>

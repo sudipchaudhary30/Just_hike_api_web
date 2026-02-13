@@ -17,62 +17,61 @@ export interface AuthenticatedRequest extends NextRequest {
  */
 export async function requireAdmin(request: NextRequest): Promise<any> {
   try {
-    // Try to get token from multiple sources
-    let token = '';
-    
-    // 1. Check Authorization header first (Bearer token)
-    const authHeader = request.headers.get('authorization');
-    if (authHeader?.startsWith('Bearer ')) {
-      token = authHeader.substring(7); // Remove "Bearer " prefix
-      console.log('[requireAdmin] Token found in Authorization header');
-    }
-    
-    // 2. Fall back to cookies
-    if (!token) {
+    // 1. Check user_data cookie first (most reliable for frontend)
+    let user: any = null;
+    try {
       const cookieStore = cookies();
-      token = cookieStore.get('auth_token')?.value || '';
+      const userData = cookieStore.get('user_data')?.value;
+      if (userData) {
+        user = JSON.parse(userData);
+        console.log('[requireAdmin] User data found in cookies, role:', user.role);
+      }
+    } catch (e) {
+      console.warn('[requireAdmin] Failed to parse user_data cookie:', e);
+    }
+
+    // 2. If not in cookie, try to decode token from Authorization header
+    if (!user) {
+      let token = '';
+      
+      const authHeader = request.headers.get('authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+        console.log('[requireAdmin] Token found in Authorization header');
+      } else {
+        const cookieStore = cookies();
+        token = cookieStore.get('auth_token')?.value || '';
+        if (token) {
+          console.log('[requireAdmin] Token found in cookies');
+        }
+      }
+
       if (token) {
-        console.log('[requireAdmin] Token found in cookies');
+        user = await verifyToken(token);
+        if (user) {
+          console.log('[requireAdmin] User decoded from token, role:', user.role);
+        }
       }
     }
-    
-    if (!token) {
-      console.error('[requireAdmin] No token found in headers or cookies');
+
+    if (!user) {
+      console.error('[requireAdmin] No valid user found in token or cookie');
       return {
         error: 'Unauthorized: No authentication token found',
         status: 401
       };
     }
 
-    // Decode and verify the token (fallback to cookie user_data if needed)
-    let user = await verifyToken(token);
-    if (!user) {
-      const cookieStore = cookies();
-      const userData = cookieStore.get('user_data')?.value;
-      if (userData) {
-        try {
-          user = JSON.parse(userData);
-        } catch {
-          user = null;
-        }
-      }
-    }
-
-    if (!user) {
-      return {
-        error: 'Unauthorized: Invalid token',
-        status: 401
-      };
-    }
-
     // Check if user has admin role
     if (user.role !== 'admin') {
+      console.warn('[requireAdmin] User is not admin, role:', user.role);
       return {
         error: 'Forbidden: Admin access required',
         status: 403
       };
     }
 
+    console.log('[requireAdmin] Admin access granted for user:', user.email);
     return { user };
   } catch (error: any) {
     console.error('[requireAdmin] Error:', error.message);
@@ -110,6 +109,7 @@ async function verifyToken(token: string): Promise<any> {
 
     return decoded;
   } catch (error) {
+    console.error('[verifyToken] Error decoding token:', error);
     return null;
   }
 }

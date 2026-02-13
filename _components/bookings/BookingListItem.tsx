@@ -54,7 +54,7 @@ export default function BookingListItem({ booking, onCancel }: BookingListItemPr
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
-              <span className="text-white text-5xl">🏔️</span>
+              <span className="text-white text-sm font-semibold">TREK</span>
             </div>
           )}
         </div>
@@ -67,7 +67,7 @@ export default function BookingListItem({ booking, onCancel }: BookingListItemPr
                 {booking.trek.title}
               </h2>
               <p className="text-gray-600">
-                📍 {booking.trek.location} • {booking.trek.durationDays} days
+                {booking.trek.location} • {booking.trek.durationDays} days
               </p>
             </div>
             <span

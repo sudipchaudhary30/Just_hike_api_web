@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/_components/auth/AuthProvider';
+import { LayoutDashboard, Mountain, Calendar, Users, BookOpen, FileText, Settings, LogOut, LogIn, Zap, Home } from 'lucide-react';
 
 interface SidebarProps {
   logoUrl?: string;
@@ -60,22 +61,22 @@ export default function Sidebar({ logoUrl }: SidebarProps) {
   // Dynamic menu based on user role with better organization
   const menuItems = isAuthenticated && user?.role === 'admin' 
     ? [
-        { icon: '📊', label: 'Dashboard', path: '/admin/dashboard', color: 'teal' },
-        { icon: '🏔️', label: 'Trek Packages', path: '/admin/treks', color: 'blue' },
-        { icon: '📅', label: 'Bookings', path: '/admin/bookings', color: 'purple' },
-        { icon: '🧭', label: 'Guides', path: '/admin/guides', color: 'orange' },
-        { icon: '📝', label: 'Blog', path: '/admin/blog', color: 'cyan' },
-        { icon: '👥', label: 'Users', path: '/admin/users', color: 'pink' },
-        { icon: '⚙️', label: 'Profile', path: '/user/profile', color: 'gray' },
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard', color: 'teal' },
+        { icon: Mountain, label: 'Trek Packages', path: '/admin/treks', color: 'blue' },
+        { icon: Calendar, label: 'Bookings', path: '/admin/bookings', color: 'purple' },
+        { icon: Users, label: 'Guides', path: '/admin/guides', color: 'orange' },
+        { icon: FileText, label: 'Blog', path: '/admin/blog', color: 'cyan' },
+        { icon: Users, label: 'Users', path: '/admin/users', color: 'pink' },
+        { icon: Settings, label: 'Profile', path: '/user/profile', color: 'gray' },
       ]
     : [
-        { icon: '🏠', label: 'Home', path: '/', color: 'teal' },
-        { icon: '🏔️', label: 'Trek Packages', path: '/treks', color: 'blue' },
-        { icon: '📝', label: 'Blog', path: '/blog', color: 'cyan' },
-        { icon: '📖', label: 'About Us', path: '/about', color: 'purple' },
+        { icon: Home, label: 'Home', path: '/', color: 'teal' },
+        { icon: Mountain, label: 'Trek Packages', path: '/treks', color: 'blue' },
+        { icon: FileText, label: 'Blog', path: '/blog', color: 'cyan' },
+        { icon: BookOpen, label: 'About Us', path: '/about', color: 'purple' },
         ...(isAuthenticated ? [
-          { icon: '📅', label: 'My Bookings', path: '/user/bookings', color: 'orange' },
-          { icon: '⚙️', label: 'Settings', path: '/settings', color: 'gray' }
+          { icon: Calendar, label: 'My Bookings', path: '/user/bookings', color: 'orange' },
+          { icon: Settings, label: 'Settings', path: '/settings', color: 'gray' }
         ] : []),
       ];
 
@@ -210,10 +211,10 @@ export default function Sidebar({ logoUrl }: SidebarProps) {
           {isAuthenticated ? (
             <button 
               onClick={handleLogout}
-              className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl text-sm font-semibold hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition-all flex items-center justify-center gap-2"
               aria-label="Logout"
             >
-              <span aria-hidden="true">🚪</span>
+              <LogOut className="w-4 h-4" />
               {!collapsed && <span>Logout</span>}
             </button>
           ) : (
@@ -222,27 +223,27 @@ export default function Sidebar({ logoUrl }: SidebarProps) {
                 <div className="space-y-2">
                   <Link
                     href="/auth/login"
-                    className="w-full px-4 py-3 border-2 border-teal-500 text-teal-600 rounded-xl text-sm font-semibold hover:bg-teal-50 transition-all flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 border border-green-500 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-50 transition-all flex items-center justify-center gap-2"
                   >
-                    <span aria-hidden="true">🔐</span>
+                    <LogIn className="w-4 h-4" />
                     <span>Login</span>
                   </Link>
                   <Link
                     href="/auth/register"
-                    className="w-full px-4 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl text-sm font-semibold hover:from-teal-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-2"
                   >
-                    <span aria-hidden="true">🚀</span>
+                    <Zap className="w-4 h-4" />
                     <span>Get Started</span>
                   </Link>
                 </div>
               ) : (
                 <Link
                   href="/auth/login"
-                  className="w-full p-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl hover:from-teal-600 hover:to-cyan-600 transition-all shadow-md hover:shadow-lg flex items-center justify-center"
+                  className="w-full p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all flex items-center justify-center"
                   title="Login"
                   aria-label="Login"
                 >
-                  <span className="text-lg" aria-hidden="true">🔐</span>
+                  <LogIn className="w-5 h-5" />
                 </Link>
               )}
             </>

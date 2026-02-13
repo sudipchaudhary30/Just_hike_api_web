@@ -63,7 +63,7 @@ export default function JustHikePage(): JSX.Element {
         <div className="relative mx-auto max-w-6xl px-6 py-40">
           <div className="max-w-2xl">
             <span className="inline-block px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white text-sm font-medium mb-6">
-              ✨ Discover Your Next Adventure
+              Discover Your Next Adventure
             </span>
             <h1 className="text-7xl font-bold text-white mb-6 leading-tight">
               Explore the Majestic Himalayas
@@ -102,7 +102,7 @@ export default function JustHikePage(): JSX.Element {
                   alt={guide.name}
                   className="h-24 w-24 rounded-full object-cover ring-4 ring-green-100 group-hover:ring-green-400 transition-all duration-300 group-hover:scale-110 shadow-lg"
                 />
-                <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center text-sm">✓</div>
+                <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center text-sm font-bold">✔</div>
               </div>
               <h3 className="font-semibold text-gray-900 text-lg">{guide.name}</h3>
               <p className="text-gray-500 text-sm">Expert Guide</p>
@@ -131,7 +131,7 @@ export default function JustHikePage(): JSX.Element {
                 />
                 {/* Rating Badge */}
                 <div className="absolute top-4 left-4 flex items-center gap-2 bg-white/95 backdrop-blur px-3 py-2 rounded-full">
-                  <span className="text-yellow-400">⭐</span>
+                  <span className="text-yellow-400">5/5</span>
                   <span className="font-semibold text-gray-900">{trek.rating}</span>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default function JustHikePage(): JSX.Element {
                 
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-2 text-gray-600">
-                    <span className="text-lg">🗻</span>
+                    <span className="text-lg font-bold">▲</span>
                     <span className="text-sm">Mountain Trek</span>
                   </div>
                 </div>

@@ -21,7 +21,6 @@ export default function ProfileUpdateForm() {
   const [previewImage, setPreviewImage] = useState<string | null>(
     (user as any)?.image || user?.profilePicture || null
   );
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
 
   const {
     register,
@@ -80,7 +79,7 @@ export default function ProfileUpdateForm() {
       const headers = getAuthHeaders(token);
       console.log('[ProfileUpdateForm] Sending request with headers:', headers);
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/${user.id}`, {
+      const response = await fetch(`/api/auth/${user.id}`, {
         method: 'PUT',
         body: formData,
         headers: headers,

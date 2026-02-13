@@ -28,11 +28,23 @@ function AdminBlogPage() {
       setIsLoading(true);
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
       const token = localStorage.getItem('auth_token');
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
       const response = await fetch(`${API_BASE_URL}/api/blogs/admin/all`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch blogs: ${response.statusText}`);
+      }
+      
       const data = await response.json();
       const mapped: BlogAdminItem[] = (data.data || []).map((blog: any) => ({
         id: blog._id,
@@ -45,8 +57,12 @@ function AdminBlogPage() {
         createdAt: blog.createdAt,
       }));
       setBlogs(mapped);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching blogs:', error);
+      if (error.name === 'AbortError') {
+        console.error('Request timed out');
+      }
+      setBlogs([]);
     } finally {
       setIsLoading(false);
     }
@@ -159,8 +175,8 @@ function AdminBlogPage() {
                                 className="h-12 w-12 rounded object-cover"
                               />
                             ) : (
-                              <div className="h-12 w-12 rounded bg-purple-100 flex items-center justify-center">
-                                📝
+                              <div className="h-12 w-12 rounded bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-600">
+                                DOC
                               </div>
                             )}
                           </div>

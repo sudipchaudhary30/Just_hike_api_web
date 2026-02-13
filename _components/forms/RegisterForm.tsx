@@ -92,7 +92,7 @@ export default function RegisterForm() {
         throw new Error(data.message || 'Registration failed');
       }
 
-      console.log('✅ Registration successful:', data);
+      console.log('Registration successful:', data);
       
       // Store token and user data
       localStorage.setItem('auth_token', data.token);

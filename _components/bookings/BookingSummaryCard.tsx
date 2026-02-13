@@ -75,7 +75,7 @@ export default function BookingSummaryCard({ trek, participants, totalPrice }: B
 
       <div className="mt-6 p-4 bg-green-50 rounded-lg">
         <p className="text-xs text-green-800">
-          🛡️ <strong>Cancellation Policy:</strong> Free cancellation up to 7 days before the trek. 50% refund 3-7 days before. No refund within 3 days.
+          <strong>Cancellation Policy:</strong> Free cancellation up to 7 days before the trek. 50% refund 3-7 days before. No refund within 3 days.
         </p>
       </div>
     </div>

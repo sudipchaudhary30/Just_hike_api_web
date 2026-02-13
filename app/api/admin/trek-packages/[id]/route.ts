@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { requireAdmin } from '@/lib/middleware/adminMiddleware';
 import { parseFormData } from '@/lib/utils/multer';
 import path from 'path';
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/just_hike';
+
+async function connectToDatabase() {
+  if (mongoose.connection.readyState === 1) return;
+  await mongoose.connect(MONGODB_URI);
+}
 
 /**
  * GET /api/admin/trek-packages/:id
@@ -14,15 +22,18 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     const packageId = params.id;
-    // TODO: Fetch from database
+
+    await connectToDatabase();
+    const TrekModel = mongoose.models.Trek || mongoose.model('Trek', new mongoose.Schema({}, { strict: false, collection: 'treks' }));
+
+    const trekDoc = await TrekModel.findById(packageId).lean();
+    if (!trekDoc) {
+      return NextResponse.json({ error: 'Trek not found' }, { status: 404 });
+    }
+
     const trekPackage = {
-      id: packageId,
-      name: 'Everest Base Camp Trek',
-      description: 'Experience the ultimate Himalayan adventure',
-      duration: 12,
-      difficulty: 'Challenging',
-      price: 1200,
-      image: '/uploads/treks/everest.jpg',
+      ...trekDoc,
+      id: trekDoc._id?.toString() || trekDoc.id,
     };
 
     return NextResponse.json({ package: trekPackage }, { status: 200 });
@@ -64,7 +75,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         const filepath = path.join(uploadDir, filename);
         await fs.writeFile(filepath, buffer);
         imageUrl = `/uploads/treks/${filename}`;
-        updateData.image = imageUrl;
+        updateData.imageUrl = imageUrl;
+        updateData.thumbnailUrl = imageUrl;
       }
     } else {
       updateData = await request.json();
@@ -78,11 +90,29 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       updateData.exclusions = JSON.parse(updateData.exclusions);
     }
 
-    // TODO: Update in database
-    const updatedPackage = {
-      id: packageId,
+    await connectToDatabase();
+    const TrekModel = mongoose.models.Trek || mongoose.model('Trek', new mongoose.Schema({}, { strict: false, collection: 'treks' }));
+
+    const normalized = {
       ...updateData,
-      updatedAt: new Date().toISOString(),
+      title: updateData.title || updateData.name,
+      name: updateData.name || updateData.title,
+      durationDays: updateData.durationDays ? Number(updateData.durationDays) : undefined,
+      price: updateData.price ? Number(updateData.price) : undefined,
+      maxGroupSize: updateData.maxGroupSize ? Number(updateData.maxGroupSize) : undefined,
+      availableSlots: updateData.availableSlots ? Number(updateData.availableSlots) : undefined,
+      isActive: updateData.isActive === 'true' || updateData.isActive === true,
+      updatedAt: new Date(),
+    };
+
+    const updatedDoc = await TrekModel.findByIdAndUpdate(packageId, normalized, { new: true, lean: true });
+    if (!updatedDoc) {
+      return NextResponse.json({ error: 'Trek not found' }, { status: 404 });
+    }
+
+    const updatedPackage = {
+      ...updatedDoc,
+      id: updatedDoc._id?.toString() || updatedDoc.id,
     };
 
     return NextResponse.json({ message: 'Trek package updated successfully', package: updatedPackage }, { status: 200 });
@@ -102,7 +132,14 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     const packageId = params.id;
-    // TODO: Delete from database
+
+    await connectToDatabase();
+    const TrekModel = mongoose.models.Trek || mongoose.model('Trek', new mongoose.Schema({}, { strict: false, collection: 'treks' }));
+
+    const deleted = await TrekModel.findByIdAndDelete(packageId);
+    if (!deleted) {
+      return NextResponse.json({ error: 'Trek not found' }, { status: 404 });
+    }
 
     return NextResponse.json({ message: 'Trek package deleted successfully' }, { status: 200 });
   } catch (error: any) {

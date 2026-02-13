@@ -26,6 +26,20 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
     }
   }, [isAuthenticated, isLoading, user, requireAdmin, router]);
 
+  // Add timeout fallback in case loading takes too long
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        console.error('[ProtectedRoute] Loading timeout - forcing check');
+        if (!isAuthenticated) {
+          router.push('/auth/login');
+        }
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [isLoading, isAuthenticated, router]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

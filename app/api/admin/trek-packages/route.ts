@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/middleware/adminMiddleware';
-import { parseFormData, saveFile } from '@/lib/utils/multer';
+import mongoose from 'mongoose';
+import { parseFormData } from '@/lib/utils/multer';
 import path from 'path';
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/just_hike';
+
+async function connectToDatabase() {
+  if (mongoose.connection.readyState === 1) return;
+  await mongoose.connect(MONGODB_URI);
+}
 
 /**
  * POST /api/admin/trek-packages
@@ -37,7 +45,8 @@ export async function POST(request: NextRequest) {
         const filepath = path.join(uploadDir, filename);
         await fs.writeFile(filepath, buffer);
         imageUrl = `/uploads/treks/${filename}`;
-        packageData.image = imageUrl;
+        packageData.imageUrl = imageUrl;
+        packageData.thumbnailUrl = imageUrl;
       }
     } else {
       packageData = await request.json();
@@ -51,17 +60,31 @@ export async function POST(request: NextRequest) {
       packageData.exclusions = JSON.parse(packageData.exclusions);
     }
 
-    // TODO: Save to database
-    const newPackage = {
-      id: Date.now().toString(),
+    await connectToDatabase();
+    const TrekModel = mongoose.models.Trek || mongoose.model('Trek', new mongoose.Schema({}, { strict: false, collection: 'treks' }));
+
+    const now = new Date();
+    const normalized = {
       ...packageData,
-      availableSlots: parseInt(packageData.availableSlots) || parseInt(packageData.maxGroupSize),
+      title: packageData.title || packageData.name,
+      name: packageData.name || packageData.title,
+      durationDays: Number(packageData.durationDays || packageData.duration || 0),
+      price: Number(packageData.price || 0),
+      maxGroupSize: Number(packageData.maxGroupSize || 0),
+      availableSlots: Number(packageData.availableSlots || packageData.maxGroupSize || 0),
       isActive: packageData.isActive === 'true' || packageData.isActive === true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
 
-    return NextResponse.json({ message: 'Trek package created successfully', package: newPackage }, { status: 201 });
+    const created = await TrekModel.create(normalized);
+    const saved = created.toObject();
+    const responsePackage = {
+      ...saved,
+      id: saved._id?.toString() || saved.id,
+    };
+
+    return NextResponse.json({ message: 'Trek package created successfully', package: responsePackage }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating trek package:', error);
     return NextResponse.json({ error: error.message || 'Failed to create trek package' }, { status: 500 });
@@ -85,34 +108,27 @@ export async function GET(request: NextRequest) {
     const difficulty = searchParams.get('difficulty') || '';
     const isActive = searchParams.get('isActive') || '';
 
-    // TODO: Replace with actual database query
-    const packages = [
-      {
-        id: '1',
-        name: 'Everest Base Camp Trek',
-        description: 'Experience the ultimate Himalayan adventure with stunning views of Mt. Everest',
-        duration: 12,
-        difficulty: 'Challenging',
-        price: 1200,
-        maxGroupSize: 12,
-        location: 'Nepal, Himalayas',
-        altitude: 5364,
-        bestSeason: 'March-May, September-November',
-        inclusions: ['Accommodation', 'Meals', 'Permits', 'Guide'],
-        exclusions: ['Flight tickets', 'Travel insurance', 'Personal expenses'],
-        itinerary: 'Day-by-day trek itinerary...',
-        image: '/uploads/treks/everest.jpg',
-        guideId: '1',
-        availableSlots: 8,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ];
+    await connectToDatabase();
+    const TrekModel = mongoose.models.Trek || mongoose.model('Trek', new mongoose.Schema({}, { strict: false, collection: 'treks' }));
+
+    const filter: any = {};
+    if (difficulty) filter.difficulty = difficulty;
+    if (isActive !== '') filter.isActive = isActive === 'true';
+
+    const total = await TrekModel.countDocuments(filter);
+    const packages = await TrekModel.find(filter)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    const transformed = packages.map((pkg: any) => ({
+      ...pkg,
+      id: pkg._id?.toString() || pkg.id,
+    }));
 
     return NextResponse.json({
-      packages,
-      pagination: { page, limit, total: packages.length, totalPages: Math.ceil(packages.length / limit) },
+      packages: transformed,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }, { status: 200 });
   } catch (error: any) {
     console.error('Error fetching trek packages:', error);

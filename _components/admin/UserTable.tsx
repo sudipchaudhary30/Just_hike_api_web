@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import Button from '@/_components/ui/Button';
+import { getAuthHeaders } from '@/lib/auth';
 
 interface User {
   id: string;
@@ -32,9 +33,21 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
   const fetchUsers = async (page: number) => {
     try {
       setIsLoading(true);
+      const headers = getAuthHeaders();
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await fetch(`/api/admin/users?page=${page}&limit=10`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
         credentials: 'include',
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const result = await response.json();
 
@@ -45,8 +58,13 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
       setUsers(result.users);
       setTotalPages(result.pagination.totalPages);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to fetch users');
+      if (error.name === 'AbortError') {
+        toast.error('Request timed out. Please try again.');
+      } else {
+        toast.error(error.message || 'Failed to fetch users');
+      }
       console.error('Fetch users error:', error);
+      setUsers([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
@@ -58,8 +76,14 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
     }
 
     try {
+      const headers = getAuthHeaders();
+      
       const response = await fetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
         credentials: 'include',
       });
 

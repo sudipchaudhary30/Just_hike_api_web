@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/middleware/adminMiddleware';
+import mongoose from 'mongoose';
 import { parseFormData, saveFile } from '@/lib/utils/multer';
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/just_hike';
+
+async function connectToDatabase() {
+  if (mongoose.connection.readyState === 1) return;
+  await mongoose.connect(MONGODB_URI);
+}
 
 /**
  * PUT /api/auth/:id
@@ -23,7 +31,7 @@ export async function PUT(
     }
 
     const userId = params.id;
-    const authenticatedUser = authResult.user;
+    const authenticatedUser = authResult.user || {};
 
     if (!userId) {
       return NextResponse.json(
@@ -32,8 +40,23 @@ export async function PUT(
       );
     }
 
-    // Ensure users can only update their own profile
-    if (authenticatedUser.id !== userId && authenticatedUser.role !== 'admin') {
+    // Resolve authenticated user id (from token/cookie) or look up by email
+    const authId = String(authenticatedUser.id || authenticatedUser._id || '');
+    const authEmail = authenticatedUser.email ? String(authenticatedUser.email).toLowerCase() : '';
+
+    await connectToDatabase();
+    const UserModel = mongoose.models.User || mongoose.model('User', new mongoose.Schema({}, { strict: false, collection: 'users' }));
+
+    let resolvedAuthUserId = authId;
+    let resolvedRole = authenticatedUser.role;
+    if ((!resolvedAuthUserId || !mongoose.Types.ObjectId.isValid(resolvedAuthUserId)) && authEmail) {
+      const authUserDoc = await UserModel.findOne({ email: authEmail }).select('_id role').lean();
+      if (authUserDoc?._id) resolvedAuthUserId = String(authUserDoc._id);
+      if (!resolvedRole && authUserDoc?.role) resolvedRole = authUserDoc.role;
+    }
+
+    // Ensure users can only update their own profile (unless admin)
+    if (resolvedAuthUserId !== userId && resolvedRole !== 'admin') {
       return NextResponse.json(
         { error: 'Forbidden: You can only update your own profile' },
         { status: 403 }
@@ -52,7 +75,7 @@ export async function PUT(
       // Save the uploaded image if present
       if (file) {
         imageUrl = await saveFile(file);
-        updateData.image = imageUrl;
+        updateData.profilePicture = imageUrl;
       }
     } else {
       // Handle JSON data (without image)
@@ -60,7 +83,7 @@ export async function PUT(
     }
 
     // Prevent users from changing their role (unless they're admin)
-    if (updateData.role && authenticatedUser.role !== 'admin') {
+    if (updateData.role && resolvedRole !== 'admin') {
       delete updateData.role;
     }
 
@@ -71,19 +94,39 @@ export async function PUT(
       // For now, we'll allow it but you should add verification
     }
 
-    // TODO: Replace with your actual database update
-    // Example: const updatedUser = await prisma.user.update({
-    //   where: { id: userId },
-    //   data: updateData
-    // });
-    
-    // Mock response for demonstration
+    let updatedUserDoc = null;
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      updatedUserDoc = await UserModel.findByIdAndUpdate(
+        userId,
+        { ...updateData, updatedAt: new Date() },
+        { new: true, lean: true }
+      );
+    }
+
+    if (!updatedUserDoc && authEmail) {
+      updatedUserDoc = await UserModel.findOneAndUpdate(
+        { email: authEmail },
+        { ...updateData, updatedAt: new Date() },
+        { new: true, lean: true }
+      );
+    }
+
+    if (!updatedUserDoc) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
     const updatedUser = {
-      id: userId,
-      ...authenticatedUser,
-      ...updateData,
-      password: undefined, // Don't return password
-      updatedAt: new Date().toISOString(),
+      id: String(updatedUserDoc._id),
+      name: updatedUserDoc.name,
+      email: updatedUserDoc.email,
+      role: updatedUserDoc.role,
+      phoneNumber: updatedUserDoc.phoneNumber,
+      profilePicture: updatedUserDoc.profilePicture,
+      createdAt: updatedUserDoc.createdAt,
+      updatedAt: updatedUserDoc.updatedAt,
     };
 
     return NextResponse.json(
@@ -121,7 +164,7 @@ export async function GET(
     }
 
     const userId = params.id;
-    const authenticatedUser = authResult.user;
+    const authenticatedUser = authResult.user || {};
 
     if (!userId) {
       return NextResponse.json(
@@ -130,27 +173,50 @@ export async function GET(
       );
     }
 
+    // Resolve authenticated user id or look up by email
+    const authId = String(authenticatedUser.id || authenticatedUser._id || '');
+    const authEmail = authenticatedUser.email ? String(authenticatedUser.email).toLowerCase() : '';
+
+    await connectToDatabase();
+    const UserModel = mongoose.models.User || mongoose.model('User', new mongoose.Schema({}, { strict: false, collection: 'users' }));
+
+    let resolvedAuthUserId = authId;
+    let resolvedRole = authenticatedUser.role;
+    if ((!resolvedAuthUserId || !mongoose.Types.ObjectId.isValid(resolvedAuthUserId)) && authEmail) {
+      const authUserDoc = await UserModel.findOne({ email: authEmail }).select('_id role').lean();
+      if (authUserDoc?._id) resolvedAuthUserId = String(authUserDoc._id);
+      if (!resolvedRole && authUserDoc?.role) resolvedRole = authUserDoc.role;
+    }
+
     // Ensure users can only view their own profile (unless admin)
-    if (authenticatedUser.id !== userId && authenticatedUser.role !== 'admin') {
+    if (resolvedAuthUserId !== userId && resolvedRole !== 'admin') {
       return NextResponse.json(
         { error: 'Forbidden: You can only view your own profile' },
         { status: 403 }
       );
     }
 
-    // TODO: Replace with your actual database query
-    // Example: const user = await prisma.user.findUnique({ where: { id: userId } });
-    
-    // Mock response for demonstration
-    const user = {
-      id: userId,
-      name: 'Name',
-      email: 'john@example.com',
-      role: 'user',
-      image: '/uploads/users/user-123.png',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    let userDoc = null;
+    if (mongoose.Types.ObjectId.isValid(userId)) {
+      userDoc = await UserModel.findById(userId).select('-password').lean();
+    }
+
+    if (!userDoc && authEmail) {
+      userDoc = await UserModel.findOne({ email: authEmail }).select('-password').lean();
+    }
+
+    const user = userDoc
+      ? {
+          id: String(userDoc._id),
+          name: userDoc.name,
+          email: userDoc.email,
+          role: userDoc.role,
+          phoneNumber: userDoc.phoneNumber,
+          profilePicture: userDoc.profilePicture,
+          createdAt: userDoc.createdAt,
+          updatedAt: userDoc.updatedAt,
+        }
+      : null;
 
     if (!user) {
       return NextResponse.json(

@@ -28,21 +28,20 @@ export default function TreksPage() {
   const fetchPackages = async () => {
     try {
       setIsLoading(true);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      const url = `${API_BASE_URL}/api/treks${selectedDifficulty ? `?difficulty=${selectedDifficulty}` : ''}`;
+      const url = `/api/treks${selectedDifficulty ? `?difficulty=${selectedDifficulty}` : ''}`;
       const response = await fetch(url);
       const data = await response.json();
-      const mapped: TrekListItem[] = (data.data || []).map((trek: any) => ({
-        id: trek._id,
-        title: trek.title,
+      const mapped: TrekListItem[] = (data.packages || []).map((trek: any) => ({
+        id: trek._id || trek.id,
+        title: trek.title || trek.name,
         description: trek.description,
         difficulty: trek.difficulty,
-        durationDays: trek.durationDays,
+        durationDays: trek.durationDays || trek.duration,
         price: trek.price,
         location: trek.location,
         maxGroupSize: trek.maxGroupSize,
-        imageUrl: trek.imageUrl,
-        thumbnailUrl: trek.thumbnailUrl,
+        imageUrl: trek.imageUrl || trek.image,
+        thumbnailUrl: trek.thumbnailUrl || trek.image,
       }));
       setPackages(mapped);
     } catch (error) {
@@ -116,7 +115,7 @@ export default function TreksPage() {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-                          <span className="text-white text-6xl">🏔️</span>
+                          <span className="text-white text-sm font-bold">TREK</span>
                         </div>
                       )}
                       
@@ -143,12 +142,10 @@ export default function TreksPage() {
                       {/* Quick Info */}
                       <div className="space-y-2.5 mb-5 pb-5 border-b border-gray-100">
                         <div className="flex items-center gap-3 text-sm text-gray-700">
-                          <span className="text-lg">📍</span>
-                          <span className="font-medium">{pkg.location}</span>
+                          <span className="font-medium">» {pkg.location}</span>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-gray-700">
-                          <span className="text-lg">👥</span>
-                          <span className="font-medium">Max {pkg.maxGroupSize} people</span>
+                          <span className="font-medium">• Max {pkg.maxGroupSize} people</span>
                         </div>
                       </div>
 

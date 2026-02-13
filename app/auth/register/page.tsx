@@ -38,7 +38,7 @@ export default function RegisterPage() {
             {/* Header section */}
             <div className="mb-8 text-left">
               <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-                Hi, Get Started Now 👋
+                Hi, Get Started Now
               </h1>
               <p className="text-slate-500">
                 Enter details to create your JustHike account

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { requireAdmin } from '@/lib/middleware/adminMiddleware';
 import { parseFormData, saveFile } from '@/lib/utils/multer';
 
@@ -83,11 +84,14 @@ export async function GET(request: NextRequest) {
     // Check if user is admin
     const authResult = await requireAdmin(request);
     if (authResult.error) {
+      console.log('[Admin Users GET] Auth failed:', authResult.error);
       return NextResponse.json(
         { error: authResult.error },
         { status: authResult.status }
       );
     }
+
+    console.log('[Admin Users GET] Auth successful');
 
     // Get query parameters for pagination and filtering
     const { searchParams } = new URL(request.url);
@@ -96,40 +100,48 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search') || '';
     const role = searchParams.get('role') || '';
 
-    // TODO: Replace with your actual database query
-    // Example: const users = await prisma.user.findMany({ 
-    //   where: { ... },
-    //   skip: (page - 1) * limit,
-    //   take: limit
-    // });
-    
-    // Mock response for demonstration
-    const users = [
-      {
-        id: '1',
-        name: 'Admin User',
-        email: 'admin@example.com',
-        role: 'admin',
-        image: '/uploads/users/default-avatar.png',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: '2',
-        name: 'Regular User',
-        email: 'user@example.com',
-        role: 'user',
-        image: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ];
+    // Connect to database
+    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/just_hike';
+    if (mongoose.connection.readyState === 0) {
+      await mongoose.connect(MONGODB_URI);
+    }
+    console.log('[Admin Users GET] Connected to database');
 
-    const total = users.length;
+    const UserModel = mongoose.models.User || mongoose.model('User', new mongoose.Schema({}, { strict: false, collection: 'users' }));
+
+    // Build filter query
+    const filter: any = {};
+    
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+    
+    if (role) {
+      filter.role = role;
+    }
+
+    // Count total users matching filter
+    const total = await UserModel.countDocuments(filter);
+
+    // Fetch paginated users
+    const users = await UserModel.find(filter)
+      .select('-password')
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    // Transform _id to id
+    const transformedUsers = users.map((user: any) => ({
+      ...user,
+      id: user._id?.toString() || user.id,
+    }));
 
     return NextResponse.json(
       {
-        users,
+        users: transformedUsers,
         pagination: {
           page,
           limit,

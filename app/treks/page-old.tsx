@@ -124,7 +124,7 @@ export default function TreksPage() {
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-                        <span className="text-white text-6xl">🏔️</span>
+                          <span className="text-white text-4xl font-bold">TREK</span>
                       </div>
                     )}
                     
@@ -151,11 +151,11 @@ export default function TreksPage() {
                     {/* Quick Info */}
                     <div className="space-y-2.5 mb-5 pb-5 border-b border-gray-100">
                       <div className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="text-lg">📍</span>
+                        <span className="text-lg">L</span>
                         <span className="font-medium">{pkg.location}</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="text-lg">👥</span>
+                        <span className="text-lg">P</span>
                         <span className="font-medium">Max {pkg.maxGroupSize} people</span>
                       </div>
                     </div>

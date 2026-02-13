@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function AdminLoginPage() {
@@ -24,14 +24,16 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
+      const normalizedEmail = formData.email.trim().toLowerCase();
+      const normalizedPassword = formData.password;
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
+          email: normalizedEmail,
+          password: normalizedPassword,
         }),
       });
 
@@ -44,16 +46,27 @@ export default function AdminLoginPage() {
         throw new Error(`Login failed: ${text || 'Unexpected response from server'}`);
       }
 
+      if (data?.success === false) {
+        throw new Error(data.message || 'Login failed');
+      }
+
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
       }
 
-      if (data?.data?.role !== 'admin') {
+      const userData = data?.data || data?.user;
+      const token = data?.token;
+
+      if (!userData || !token) {
+        throw new Error('Login failed: missing user data or token');
+      }
+
+      if (userData?.role !== 'admin') {
         throw new Error('Access denied. Admin only.');
       }
 
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('user_data', JSON.stringify(data.data));
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('user_data', JSON.stringify(userData));
 
       await fetch('/api/auth/set-cookies', {
         method: 'POST',
@@ -61,50 +74,42 @@ export default function AdminLoginPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          token: data.token,
-          userData: data.data,
+          token,
+          userData,
         }),
       });
 
       toast.success('Welcome Admin!');
 
-      setTimeout(() => {
-        router.push('/admin/dashboard');
-        router.refresh();
-      }, 500);
+      // Don't set loading to false before redirect
+      router.push('/admin/dashboard');
+      router.refresh();
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Only set false on error
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-green-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
-
-      <div className="relative bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md p-8 border border-white/20">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow w-full max-w-md p-8 border border-gray-200">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl mb-6 shadow-lg">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4">
+            <Lock className="w-6 h-6 text-green-600" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Access</h1>
-          <p className="text-gray-600 font-medium">Secure admin panel</p>
+          <h1 className="text-2xl font-bold text-gray-900">Admin Access</h1>
+          <p className="text-gray-600 text-sm mt-2">Secure admin panel</p>
         </div>
 
         {/* Credentials Info */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 border-l-4 border-green-500 rounded-lg p-4 mb-8">
-          <p className="text-sm text-gray-700 font-medium">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-sm text-gray-700">
             Use your backend admin credentials to log in.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" action="#" method="post">
           {/* Email Input */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -115,8 +120,9 @@ export default function AdminLoginPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white hover:border-gray-300"
-              placeholder="admin@justhike.com"
+              autoComplete="email"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white"
+              placeholder="admin@example.com"
               disabled={isLoading}
               required
             />
@@ -133,7 +139,8 @@ export default function AdminLoginPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white hover:border-gray-300 pr-12"
+                autoComplete="current-password"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white pr-10"
                 placeholder="••••••••"
                 disabled={isLoading}
                 required
@@ -152,7 +159,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95"
+            className="w-full py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
           >
             {isLoading ? (
               <span className="flex items-center justify-center">
@@ -172,15 +179,15 @@ export default function AdminLoginPage() {
         <div className="mt-6 pt-6 border-t border-gray-200 text-center">
           <a 
             href="/" 
-            className="text-sm text-gray-600 hover:text-green-600 transition-colors font-medium"
+            className="text-sm text-gray-600 hover:text-green-600 transition-colors"
           >
             ← Back to Home
           </a>
         </div>
 
         {/* Info Banner */}
-        <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-xs text-blue-800 font-medium">
+        <div className="mt-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <p className="text-xs text-gray-700">
             Admin access is validated by your backend authentication.
           </p>
         </div>

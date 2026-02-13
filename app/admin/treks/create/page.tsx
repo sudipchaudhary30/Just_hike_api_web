@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
+import { getAuthHeaders } from '@/lib/auth';
 
 function CreateTrekPage() {
   const router = useRouter();
@@ -47,13 +48,10 @@ function CreateTrekPage() {
         submitData.append('image', imageFile);
       }
 
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(`${API_BASE_URL}/api/treks`, {
+      const headers = getAuthHeaders();
+      const response = await fetch('/api/admin/trek-packages', {
         method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers,
         body: submitData,
       });
 

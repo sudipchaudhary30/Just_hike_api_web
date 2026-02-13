@@ -67,14 +67,14 @@ export default function JustHikePage(): JSX.Element {
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
             <div className="flex items-center gap-3 bg-white/95 backdrop-blur px-4 py-3 rounded-2xl shadow-lg">
-              <span className="text-teal-500">🔍</span>
+              <span className="text-teal-500">S</span>
               <input
                 type="text"
                 placeholder="Hike you want to join"
                 className="flex-1 bg-transparent outline-none text-slate-800 placeholder:text-slate-400"
               />
               <button className="h-10 w-10 rounded-full bg-teal-400 text-white flex items-center justify-center hover:bg-teal-500 transition-colors">
-                🎤
+                →
               </button>
             </div>
           </div>
@@ -115,7 +115,7 @@ export default function JustHikePage(): JSX.Element {
                   alt={guide.name}
                   className="h-24 w-24 rounded-full object-cover ring-4 ring-teal-100 group-hover:ring-teal-300 transition-all duration-300 group-hover:scale-110 shadow-lg"
                 />
-                <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-teal-400 rounded-full border-4 border-white flex items-center justify-center text-sm">✓</div>
+                <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-teal-400 rounded-full border-4 border-white flex items-center justify-center text-sm">✔</div>
               </div>
               <h3 className="font-semibold text-gray-900 text-lg">{guide.name}</h3>
               <p className="text-gray-500 text-sm">Expert Guide</p>
@@ -144,7 +144,7 @@ export default function JustHikePage(): JSX.Element {
                 />
                 {/* Rating Badge */}
                 <div className="absolute top-4 left-4 flex items-center gap-2 bg-white/95 backdrop-blur px-3 py-2 rounded-full">
-                  <span className="text-yellow-400">⭐</span>
+                  <span className="text-yellow-400">★</span>
                   <span className="font-semibold text-gray-900">{trek.rating}</span>
                 </div>
               </div>
@@ -155,7 +155,7 @@ export default function JustHikePage(): JSX.Element {
                 
                 <div className="space-y-3 mb-6">
                   <div className="flex items-center gap-2 text-gray-600">
-                    <span className="text-lg">🗻</span>
+                    <span className="text-lg">▲</span>
                     <span className="text-sm">Mountain Trek</span>
                   </div>
                 </div>

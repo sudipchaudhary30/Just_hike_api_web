@@ -17,7 +17,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; user?: User }>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
@@ -40,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Try to get user from localStorage
       const storedUser = localStorage.getItem('user_data');
       const storedToken = localStorage.getItem('auth_token');
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const tokenLooksJwt = (token: string) => token.split('.').length === 3;
       
       if (storedUser && storedToken) {
         const parsedUser = JSON.parse(storedUser);
@@ -47,7 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Basic validation for user id (MongoDB ObjectId: 24 hex chars)
         const idIsValid = typeof parsedUser?.id === 'string' && /^[a-fA-F0-9]{24}$/.test(parsedUser.id);
 
-        if (!idIsValid) {
+        // If using external backend, require a JWT-like token
+        const tokenIsValidForBackend = apiBaseUrl ? tokenLooksJwt(storedToken) : true;
+
+        if (!idIsValid || !tokenIsValidForBackend) {
           localStorage.removeItem('user_data');
           localStorage.removeItem('auth_token');
           setUser(null);
@@ -66,19 +71,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; user?: User }> => {
     try {
       setIsLoading(true);
-      
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const normalizedEmail = email.trim().toLowerCase();
+      const normalizedPassword = password;
+      const tryLogin = async () => {
+        return fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail, password: normalizedPassword }),
+        });
+      };
+
+      const response = await tryLogin();
 
       const contentType = response.headers.get('content-type') || '';
       let data: any = null;
@@ -88,18 +94,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const text = await response.text();
         throw new Error(`Login failed: ${text || 'Unexpected response from server'}`);
       }
-      
+
+      if (data?.success === false) {
+        throw new Error(data?.message || data?.error || 'Login failed');
+      }
+
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        // include server message in error for clearer feedback
+        throw new Error(data?.message || data?.error || 'Login failed');
       }
 
       // Store user data and token
-      setUser(data.data);
-      const token = data.token;
+      const userData = data?.data || data?.user;
+      const token = data?.token;
+
+      if (!userData || !token) {
+        throw new Error('Login failed: missing user data or token');
+      }
+
+      setUser(userData);
       
       // Store in localStorage
       localStorage.setItem('auth_token', token);
-      localStorage.setItem('user_data', JSON.stringify(data.data));
+      localStorage.setItem('user_data', JSON.stringify(userData));
       
       console.log('[Auth] Login successful - Token stored:', token.substring(0, 20) + '...');
       
@@ -111,17 +128,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({
           token: data.token,
-          userData: data.data
+          userData
         }),
       });
 
       toast.success('Welcome back!');
-      return true;
+      return { success: true, user: userData };
       
     } catch (error: any) {
       console.error('[Auth] Login failed:', error);
       toast.error(error.message || 'Login failed');
-      return false;
+      return { success: false };
     } finally {
       setIsLoading(false);
     }
@@ -131,9 +148,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      // Call local Next.js API route for registration
+      const response = await fetch(`/api/auth/register`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

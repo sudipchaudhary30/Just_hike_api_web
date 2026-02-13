@@ -81,8 +81,11 @@ export default function Navigation(): JSX.Element {
                   <Link href="/admin/blog" className="block px-4 py-2 hover:bg-gray-100">
                     Manage Blog
                   </Link>
-                  <Link href="/admin/users" className="block px-4 py-2 hover:bg-gray-100 rounded-b-lg">
+                  <Link href="/admin/users" className="block px-4 py-2 hover:bg-gray-100">
                     Manage Users
+                  </Link>
+                  <Link href="/admin/email-verification" className="block px-4 py-2 hover:bg-gray-100 rounded-b-lg">
+                    Email Verification
                   </Link>
                 </div>
               </div>
@@ -94,7 +97,7 @@ export default function Navigation(): JSX.Element {
                 href="/admin/login" 
                 className="text-gray-500 hover:text-green-600 transition-colors px-2 font-medium text-sm"
               >
-                🔐 Admin
+                Admin
               </Link>
             )} */}
             
