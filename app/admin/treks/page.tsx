@@ -87,30 +87,42 @@ function AdminTreksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Trek Packages Management</h1>
-            <p className="text-gray-600 mt-2">Manage all trek packages</p>
+        <div className="mb-8">
+          <div className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] rounded-full text-white text-xs font-semibold uppercase tracking-wide mb-4">
+            Management
           </div>
-          <Link
-            href="/admin/treks/create"
-            className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-          >
-            + Add New Trek
-          </Link>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Trek Packages</h1>
+              <p className="text-gray-600 mt-2 text-lg">Create, edit, and manage all trekking packages</p>
+            </div>
+            <Link
+              href="/admin/treks/create"
+              className="bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white px-8 py-4 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+            >
+              ＋ New Trek
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <div className="flex justify-center items-center py-32">
+            <div className="text-center">
+              <div className="inline-flex animate-spin h-16 w-16 text-[#45D1C1] mb-4">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-gray-600 font-medium">Loading trek packages...</p>
+            </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Trek Package
@@ -151,7 +163,7 @@ function AdminTreksPage() {
                               <div className="h-12 w-12 rounded bg-green-100 flex items-center justify-center text-xs font-semibold text-green-600">
                                 TRK
                               </div>
-                            )}}
+                            )}
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{trek.title}</div>
@@ -184,19 +196,19 @@ function AdminTreksPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <Link
                           href={`/admin/treks/${trek.id}`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white bg-[#45D1C1] hover:bg-[#3BC1B1]"
                         >
                           View
                         </Link>
                         <Link
                           href={`/admin/treks/${trek.id}/edit`}
-                          className="text-green-600 hover:text-green-900"
+                          className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white bg-[#45D1C1] hover:bg-[#3BC1B1]"
                         >
                           Edit
                         </Link>
                         <button
                           onClick={() => handleDelete(trek.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white bg-[#45D1C1] hover:bg-[#3BC1B1]"
                         >
                           Delete
                         </button>
@@ -214,7 +226,7 @@ function AdminTreksPage() {
             <p className="text-gray-500 text-lg mb-4">No trek packages found</p>
             <Link
               href="/admin/treks/create"
-              className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+              className="inline-block bg-[#45D1C1] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#3BC1B1] transition-colors"
             >
               Create First Trek Package
             </Link>

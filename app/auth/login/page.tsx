@@ -6,14 +6,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-40 w-80 h-80 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute bottom-0 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-0 -left-40 w-80 h-80 bg-[#45D1C1] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute bottom-0 -right-40 w-80 h-80 bg-[#3BC1B1] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       </div>
 
       {/* Left Side - Image (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden items-center justify-center p-8">
         <div className="relative w-full h-full max-w-md">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-blue-600 rounded-2xl opacity-20 blur-xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#45D1C1]/30 to-[#3BC1B1]/20 rounded-2xl opacity-20 blur-xl"></div>
           <Image
             src="/Assets/Images/login_signup.png"
             alt="Mountain hiking adventure with prayer flags"
@@ -44,7 +44,7 @@ export default function LoginPage() {
             <div className="mt-8 pt-8 border-t border-slate-700/50 text-center">
               <p className="text-slate-400">
                 Don't have an account?{' '}
-                <a href="/auth/register" className="text-green-400 hover:text-green-300 font-semibold transition-colors">
+                <a href="/auth/register" className="text-[#45D1C1] hover:text-[#3BC1B1] font-semibold transition-colors">
                   Sign up
                 </a>
               </p>

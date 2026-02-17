@@ -53,3 +53,6 @@ next-env.d.ts
 *.ico
 *.bmp
 /uploads/
+
+# Allow images in public assets
+!public/Assets/Images/*

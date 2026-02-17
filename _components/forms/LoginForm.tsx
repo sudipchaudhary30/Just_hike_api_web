@@ -105,7 +105,7 @@ export default function LoginForm() {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg focus:border-green-500/50 focus:bg-slate-700/70 outline-none transition-all text-white placeholder-slate-500"
+            className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg focus:border-[#45D1C1]/50 focus:bg-slate-700/70 outline-none transition-all text-white placeholder-slate-500"
             placeholder="you@example.com"
             disabled={isLoading}
             required
@@ -123,7 +123,7 @@ export default function LoginForm() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg focus:border-green-500/50 focus:bg-slate-700/70 outline-none transition-all text-white placeholder-slate-500 pr-10"
+              className="w-full px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg focus:border-[#45D1C1]/50 focus:bg-slate-700/70 outline-none transition-all text-white placeholder-slate-500 pr-10"
               placeholder="••••••••"
               disabled={isLoading}
               required
@@ -143,13 +143,13 @@ export default function LoginForm() {
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
-              className="h-4 w-4 bg-slate-700 border border-slate-600 rounded focus:ring-green-500 cursor-pointer accent-green-500"
+              className="h-4 w-4 bg-slate-700 border border-slate-600 rounded focus:ring-[#45D1C1] cursor-pointer accent-[#45D1C1]"
             />
             <span className="ml-2 text-sm text-slate-400">Remember me</span>
           </label>
           <Link 
             href="/auth/forgot-password" 
-            className="text-sm text-green-400 hover:text-green-300 font-medium transition-colors"
+            className="text-sm text-[#45D1C1] hover:text-[#3BC1B1] font-medium transition-colors"
           >
             Forgot password?
           </Link>
@@ -159,7 +159,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+          className="w-full py-3 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#45D1C1]/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/middleware/adminMiddleware';
 import { parseFormData } from '@/lib/utils/multer';
-import path from 'path';
 
 /**
  * POST /api/admin/guides
@@ -16,48 +15,57 @@ export async function POST(request: NextRequest) {
 
     const contentType = request.headers.get('content-type') || '';
     let guideData: any = {};
-    let imageUrl: string | null = null;
+    let imageFile: any = null;
 
     if (contentType.includes('multipart/form-data')) {
       const { file, fields } = await parseFormData(request);
       guideData = fields;
-
-      if (file) {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.name);
-        const filename = 'guide-' + uniqueSuffix + ext;
-        
-        const fs = require('fs').promises;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'guides');
-        await fs.mkdir(uploadDir, { recursive: true });
-        
-        const filepath = path.join(uploadDir, filename);
-        await fs.writeFile(filepath, buffer);
-        imageUrl = `/uploads/guides/${filename}`;
-        guideData.image = imageUrl;
-      }
+      imageFile = file;
     } else {
       guideData = await request.json();
     }
 
-    // Parse expertise array
-    if (typeof guideData.expertise === 'string') {
-      guideData.expertise = JSON.parse(guideData.expertise);
+    // Parse languages array if string
+    if (typeof guideData.languages === 'string') {
+      guideData.languages = JSON.parse(guideData.languages);
     }
 
-    // TODO: Save to database
-    const newGuide = {
-      id: Date.now().toString(),
-      ...guideData,
-      experience: parseInt(guideData.experience),
-      isAvailable: guideData.isAvailable === 'true' || guideData.isAvailable === true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    // Send to backend API
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+    const token = request.headers.get('authorization');
 
-    return NextResponse.json({ message: 'Guide created successfully', guide: newGuide }, { status: 201 });
+    const backendFormData = new FormData();
+    backendFormData.append('name', guideData.name);
+    backendFormData.append('email', guideData.email);
+    backendFormData.append('phoneNumber', guideData.phoneNumber);
+    backendFormData.append('bio', guideData.bio);
+    backendFormData.append('experienceYears', guideData.experienceYears);
+    backendFormData.append('languages', JSON.stringify(guideData.languages || []));
+
+    // Forward the image file directly if it exists
+    if (imageFile) {
+      const bytes = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      backendFormData.append('image', new File([buffer], imageFile.name, { type: imageFile.type }));
+    }
+
+    const backendResponse = await fetch(`${API_BASE_URL}/api/guides`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { 'Authorization': token } : {}),
+      },
+      body: backendFormData,
+    });
+
+    if (!backendResponse.ok) {
+      throw new Error(`Failed to create guide in backend: ${backendResponse.statusText}`);
+    }
+
+    const backendData = await backendResponse.json();
+    return NextResponse.json({ 
+      message: 'Guide created successfully', 
+      guide: backendData.data || backendData.guide || backendData 
+    }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to create guide' }, { status: 500 });
   }

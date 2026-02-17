@@ -1,7 +1,6 @@
 import { Inter, Jura } from 'next/font/google'
 import './globals.css'
 import Navigation from '@/_components/Navigation'
-import Footer from '@/_components/Footer'
 import { AuthProvider } from '@/_components/auth/AuthProvider'
 import { Toaster } from 'react-hot-toast'
 
@@ -25,7 +24,6 @@ export default function RootLayout({
           <Toaster position="top-right" />
           <Navigation />
           <main className="flex-grow">{children}</main>
-          <Footer />
         </AuthProvider>
       </body>
     </html>

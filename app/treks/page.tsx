@@ -61,12 +61,12 @@ export default function TreksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-green-600 to-green-800 text-white py-20">
+      <div className="bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Explore Trek Packages</h1>
-          <p className="text-xl text-green-100">Discover amazing trekking adventures across the Himalayas</p>
+          <p className="text-xl text-white/80">Discover amazing trekking adventures across the Himalayas</p>
         </div>
       </div>
 
@@ -78,7 +78,7 @@ export default function TreksPage() {
             <select
               value={selectedDifficulty}
               onChange={(e) => setSelectedDifficulty(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent"
             >
               <option value="">All Levels</option>
               <option value="easy">Easy</option>
@@ -93,7 +93,7 @@ export default function TreksPage() {
           <div className="flex justify-center items-center py-32">
             <div className="text-center">
               <div className="inline-block">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#45D1C1]/20 border-t-[#45D1C1]"></div>
               </div>
               <p className="mt-4 text-gray-600 font-medium">Loading amazing treks...</p>
             </div>
@@ -114,7 +114,7 @@ export default function TreksPage() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1] flex items-center justify-center">
                           <span className="text-white text-sm font-bold">TREK</span>
                         </div>
                       )}
@@ -132,7 +132,7 @@ export default function TreksPage() {
 
                     {/* Trek Content */}
                     <div className="p-6">
-                      <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-green-600 transition-colors">
+                      <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#45D1C1] transition-colors">
                         {pkg.title}
                       </h3>
                       <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -152,10 +152,10 @@ export default function TreksPage() {
                       {/* Footer */}
                       <div className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <span className="text-2xl font-bold text-green-600">${pkg.price}</span>
+                          <span className="text-2xl font-bold text-[#45D1C1]">${pkg.price}</span>
                           <span className="text-xs text-gray-500 font-medium">per person</span>
                         </div>
-                        <button className="px-4 py-2.5 bg-green-500 text-white rounded-lg font-semibold text-sm hover:bg-green-600 transition-all duration-300 shadow hover:shadow-lg">
+                        <button className="px-4 py-2.5 bg-[#45D1C1] text-white rounded-lg font-semibold text-sm hover:bg-[#3BC1B1] transition-all duration-300 shadow hover:shadow-lg">
                           Explore →
                         </button>
                       </div>
@@ -170,7 +170,7 @@ export default function TreksPage() {
                 <p className="text-gray-500 text-lg mb-4">No trek packages found</p>
                 <Link
                   href="/treks"
-                  className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                  className="inline-block bg-[#45D1C1] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#3BC1B1] transition-colors"
                 >
                   Try Again
                 </Link>

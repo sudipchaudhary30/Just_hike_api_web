@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --primary: #2dd4bf;
+  --primary: #45D1C1;
+  --theme-from: #45D1C1;
+  --theme-to: #3BC1B1;
   --surface: #ffffff;
   --text: #0f172a;
 }
@@ -14,7 +16,7 @@ body {
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #10b981 #f3f4f6;
+  scrollbar-color: var(--theme-from) #f3f4f6;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -26,6 +28,14 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #10b981;
+  background: var(--theme-from);
   border-radius: 20px;
+}
+
+.theme-gradient {
+  background-color: var(--primary);
+}
+
+.theme-gradient:hover {
+  background-color: var(--theme-to);
 }

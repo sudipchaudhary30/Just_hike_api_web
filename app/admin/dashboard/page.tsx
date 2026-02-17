@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
-import Sidebar from '@/_components/admin/Sidebar';
-import { useRouter } from 'next/navigation';
+import { Users, Mountain, Calendar, BookOpen, Zap } from 'lucide-react';
 
 interface DashboardStats {
   totalUsers: number;
@@ -22,14 +21,10 @@ function AdminDashboardPage() {
     totalGuides: 0,
     totalBlogPosts: 0,
   });
-  const [logoUrl, setLogoUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     fetchDashboardStats();
-    const savedLogo = localStorage.getItem('admin_logo');
-    if (savedLogo) setLogoUrl(savedLogo);
   }, []);
 
   const fetchDashboardStats = async () => {
@@ -104,311 +99,226 @@ function AdminDashboardPage() {
     }
   };
 
-  const handleQuickAction = (action: string) => {
-    router.push(action);
-  };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="relative w-16 h-16">
-          <div className="absolute inset-0 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full animate-spin"></div>
-          <div className="absolute inset-2 bg-white rounded-full"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="inline-flex animate-spin h-12 w-12 text-[#45D1C1] mb-4">
+            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
+  const StatCard = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color: string }) => (
+    <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100 hover:shadow-xl hover:border-[#45D1C1]/20 transition-all duration-300 group">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-3">{label}</p>
+          <p className="text-4xl font-bold text-gray-900">{value}</p>
+        </div>
+        <div className={`p-4 rounded-xl ${color} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+      </div>
+    </div>
+  );
+
+  const QuickActionButton = ({ href, icon: Icon, title, description }: { href: string; icon: any; title: string; description: string }) => (
+    <Link
+      href={href}
+      className="group bg-white rounded-xl p-6 border border-gray-200 hover:border-[#45D1C1] hover:shadow-xl hover:bg-gradient-to-br hover:from-white hover:to-[#45D1C1]/5 transition-all duration-300"
+    >
+      <div className="p-4 bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1] rounded-xl w-fit mb-4 group-hover:scale-125 transition-transform duration-300 shadow-lg">
+        <Icon className="w-6 h-6 text-white" />
+      </div>
+      <h3 className="font-bold text-gray-900 mb-1 text-lg">{title}</h3>
+      <p className="text-sm text-gray-600">{description}</p>
+    </Link>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar logoUrl={logoUrl} />
-
-      {/* Main Content */}
-      <div className="ml-64 min-h-screen p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <select className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400">
-              <option>10-06-2021</option>
-            </select>
-            <select className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400">
-              <option>10-12-2025</option>
-            </select>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white p-6 md:p-8">
+      {/* Premium Header */}
+      <div className="mb-12">
+        <div className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] rounded-full text-white text-xs font-semibold uppercase tracking-wide mb-4">
+          Admin Control Panel
         </div>
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+        <p className="text-gray-600 text-lg max-w-2xl">Manage your trekking platform efficiently with real-time insights and quick access to all key features</p>
+      </div>
 
-        {/* Top Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Total Treks */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-semibold text-blue-600">TRK</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-gray-800 mb-1">{stats.totalTreks}+</p>
-              <p className="text-gray-500 text-sm">Total Trek Packages</p>
-            </div>
+      {/* Premium Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+        <StatCard
+          icon={Users}
+          label="Total Users"
+          value={stats.totalUsers}
+          color="bg-[#45D1C1]"
+        />
+        <StatCard
+          icon={Mountain}
+          label="Trek Packages"
+          value={stats.totalTreks}
+          color="bg-[#45D1C1]"
+        />
+        <StatCard
+          icon={Calendar}
+          label="Bookings"
+          value={stats.totalBookings}
+          color="bg-[#45D1C1]"
+        />
+        <StatCard
+          icon={BookOpen}
+          label="Blog Posts"
+          value={stats.totalBlogPosts}
+          color="bg-[#45D1C1]"
+        />
+        <StatCard
+          icon={Zap}
+          label="Active Guides"
+          value={stats.totalGuides}
+          color="bg-[#45D1C1]"
+        />
+      </div>
+
+      {/* Overview Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        {/* Quick Stats Box */}
+        <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center mb-6">
+            <div className="w-2 h-8 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded-full mr-3"></div>
+            <h2 className="text-lg font-bold text-gray-900">Platform Overview</h2>
           </div>
-
-          {/* Total Bookings */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-semibold text-orange-600">BKG</span>
-              </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Booking Rate</span>
+              <span className="font-bold text-[#45D1C1]">85%</span>
             </div>
-            <div>
-              <p className="text-3xl font-bold text-gray-800 mb-1">{stats.totalBookings}</p>
-              <p className="text-gray-500 text-sm">Total Bookings</p>
+            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">User Growth</span>
+              <span className="font-bold text-green-600">+12%</span>
             </div>
-          </div>
-
-          {/* Total Users */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-semibold text-purple-600">USR</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-gray-800 mb-1">{stats.totalUsers}</p>
-              <p className="text-gray-500 text-sm">Registered Users</p>
-            </div>
-          </div>
-
-          {/* Active Guides */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-semibold text-teal-600">GDE</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-gray-800 mb-1">{stats.totalGuides}</p>
-              <p className="text-gray-500 text-sm">Active Guides</p>
+            <div className="flex justify-between items-center pt-2">
+              <span className="text-gray-600 font-medium">Active Users</span>
+              <span className="font-bold text-green-600">{stats.totalUsers}</span>
             </div>
           </div>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Reports Chart - Takes 2 columns */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border-2 border-teal-400">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-gray-800">Reports</h2>
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div>
-            <div className="h-80 flex items-center justify-center text-gray-400">
-              {/* Placeholder for chart */}
-              <div className="text-center">
-                <p className="text-sm">Activity Chart</p>
-                <p className="text-xs mt-2">Trek bookings and user activity over time</p>
+        {/* Featured Info */}
+        <div className="bg-gradient-to-br from-[#45D1C1] via-[#3BC1B1] to-[#2AA89B] rounded-xl p-8 text-white shadow-lg transform hover:scale-105 transition-transform duration-300 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+          <div className="relative z-10">
+            <h2 className="text-lg font-bold mb-2">Today's Activity</h2>
+            <p className="text-white/90 text-sm mb-6">Keep track of today's bookings and user registrations</p>
+            <div className="flex gap-8">
+              <div>
+                <p className="text-3xl font-bold">12</p>
+                <p className="text-sm text-white/80 mt-1">New Bookings</p>
               </div>
-            </div>
-          </div>
-
-          {/* Analytics Donut Chart */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-gray-800">Analytics</h2>
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div>
-            <div className="flex flex-col items-center justify-center py-8">
-              {/* Donut Chart Placeholder */}
-              <div className="relative w-48 h-48 mb-6">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="96" cy="96" r="80" fill="none" stroke="#FBBF24" strokeWidth="24" strokeDasharray="440 502" />
-                  <circle cx="96" cy="96" r="80" fill="none" stroke="#EF4444" strokeWidth="24" strokeDasharray="62 502" strokeDashoffset="-440" />
-                  <circle cx="96" cy="96" r="80" fill="none" stroke="#14B8A6" strokeWidth="24" strokeDasharray="290 502" strokeDashoffset="-502" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-4xl font-bold text-gray-800">80%</p>
-                  <p className="text-sm text-gray-500">Completion</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-teal-400 rounded-full"></div>
-                  <span className="text-gray-600">Completed</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                  <span className="text-gray-600">Booked</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                  <span className="text-gray-600">Cancelled</span>
-                </div>
+              <div>
+                <p className="text-3xl font-bold">8</p>
+                <p className="text-sm text-white/80 mt-1">New Users</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Orders */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-gray-800">Recent Bookings</h2>
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase">Tracking no</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase">Package</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase">Price</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase">Trek</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-gray-500 uppercase">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-4 px-2 text-sm text-gray-700">#876364</td>
-                    <td className="py-4 px-2 text-sm text-gray-700">Poon Hill</td>
-                    <td className="py-4 px-2 text-sm text-gray-700">Rs 25,000</td>
-                    <td className="py-4 px-2">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">B1</span>
-                    </td>
-                    <td className="py-4 px-2 text-sm font-semibold text-gray-800">Rs 25,500</td>
-                  </tr>
-                  <tr className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-4 px-2 text-sm text-gray-700">#874368</td>
-                    <td className="py-4 px-2 text-sm text-gray-700">Mt Everest Base</td>
-                    <td className="py-4 px-2 text-sm text-gray-700">Rs 48,000</td>
-                    <td className="py-4 px-2">
-                      <span className="px-3 py-1 bg-teal-100 text-teal-600 rounded-full text-xs font-medium">G3</span>
-                    </td>
-                    <td className="py-4 px-2 text-sm font-semibold text-gray-800">Rs 49,000</td>
-                  </tr>
-                  <tr className="hover:bg-gray-50">
-                    <td className="py-4 px-2 text-sm text-gray-700">#876412</td>
-                    <td className="py-4 px-2 text-sm text-gray-700">Ruby Valley</td>
-                    <td className="py-4 px-2 text-sm text-gray-700">Rs 42,000</td>
-                    <td className="py-4 px-2">
-                      <span className="px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs font-medium">11</span>
-                    </td>
-                    <td className="py-4 px-2 text-sm font-semibold text-gray-800">Rs 43,000</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Top Booked Package */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-gray-800">Top Booked Packages</h2>
-              <button className="text-gray-400 hover:text-gray-600">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-4">
-              {/* Package Item */}
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex-shrink-0"></div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-800 mb-1">Poon Hill Trek</h3>
-                  <div className="flex items-center gap-1 mb-1">
-                    <span className="text-yellow-400">5/5</span>
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Rs 25,000</p>
-                </div>
-              </div>
-
-              {/* Package Item */}
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-                <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-cyan-600 rounded-xl flex-shrink-0"></div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-800 mb-1">Mt Everest Base Camp</h3>
-                  <div className="flex items-center gap-1 mb-1">
-                    <span className="text-yellow-400">5/5</span>
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Rs 49,000</p>
-                </div>
-              </div>
-
-              {/* Package Item */}
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex-shrink-0"></div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-800 mb-1">Annapurna Circuit</h3>
-                  <div className="flex items-center gap-1 mb-1">
-                    <span className="text-yellow-400">5/5</span>
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Rs 38,000</p>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Support Box */}
+        <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Need Assistance?</h2>
+          <p className="text-gray-600 text-sm mb-6">Explore comprehensive guides and documentation for all features</p>
+          <button className="w-full bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] hover:shadow-lg text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+            View Documentation
+          </button>
         </div>
+      </div>
 
-        {/* Quick Actions */}
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button
-              onClick={() => handleQuickAction('/admin/treks/create')}
-              className="group bg-white hover:bg-teal-50 border-2 border-gray-100 hover:border-teal-400 rounded-xl p-6 transition-all duration-300 text-left shadow-sm"
-            >
-              <div className="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-2xl">+</span>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-1">Add Trek</h3>
-              <p className="text-sm text-gray-500">Create new trek package</p>
-            </button>
+      {/* Quick Actions */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <QuickActionButton
+            href="/admin/treks/create"
+            icon={Mountain}
+            title="Add Trek"
+            description="Create a new trek package"
+          />
+          <QuickActionButton
+            href="/admin/guides/create"
+            icon={Users}
+            title="Add Guide"
+            description="Register a new guide"
+          />
+          <QuickActionButton
+            href="/admin/blog/create"
+            icon={BookOpen}
+            title="Write Blog"
+            description="Create a blog post"
+          />
+          <QuickActionButton
+            href="/admin/users/create"
+            icon={Zap}
+            title="Add User"
+            description="Create a user account"
+          />
+        </div>
+      </div>
 
-            <button
-              onClick={() => handleQuickAction('/admin/guides/create')}
-              className="group bg-white hover:bg-blue-50 border-2 border-gray-100 hover:border-blue-400 rounded-xl p-6 transition-all duration-300 text-left shadow-sm"
-            >
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-2xl font-bold">G</span>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-1">Add Guide</h3>
-              <p className="text-sm text-gray-500">Register new guide</p>
-            </button>
-
-            <button
-              onClick={() => handleQuickAction('/admin/blog/create')}
-              className="group bg-white hover:bg-purple-50 border-2 border-gray-100 hover:border-purple-400 rounded-xl p-6 transition-all duration-300 text-left shadow-sm"
-            >
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-2xl font-bold">B</span>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-1">Write Blog</h3>
-              <p className="text-sm text-gray-500">Create blog post</p>
-            </button>
-
-            <button
-              onClick={() => handleQuickAction('/admin/users/create')}
-              className="group bg-white hover:bg-orange-50 border-2 border-gray-100 hover:border-orange-400 rounded-xl p-6 transition-all duration-300 text-left shadow-sm"
-            >
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <span className="text-2xl font-bold">U</span>
-              </div>
-              <h3 className="font-bold text-gray-800 mb-1">Add User</h3>
-              <p className="text-sm text-gray-500">Create user account</p>
-            </button>
-          </div>
+      {/* Management Links */}
+      <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300">
+        <div className="flex items-center mb-8">
+          <div className="w-2 h-8 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded-full mr-3"></div>
+          <h2 className="text-2xl font-bold text-gray-900">Management Panels</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link
+            href="/admin/treks"
+            className="group p-6 border border-gray-200 rounded-xl hover:border-[#45D1C1] hover:bg-gradient-to-br hover:from-white hover:to-[#45D1C1]/5 hover:shadow-lg transition-all duration-300"
+          >
+            <p className="font-bold text-gray-900 group-hover:text-[#45D1C1]">Trek Packages</p>
+            <p className="text-sm text-gray-600 mt-1">View & manage all treks</p>
+          </Link>
+          <Link
+            href="/admin/guides"
+            className="group p-6 border border-gray-200 rounded-xl hover:border-[#45D1C1] hover:bg-gradient-to-br hover:from-white hover:to-[#45D1C1]/5 hover:shadow-lg transition-all duration-300"
+          >
+            <p className="font-bold text-gray-900 group-hover:text-[#45D1C1]">Guides</p>
+            <p className="text-sm text-gray-600 mt-1">Manage trekking guides</p>
+          </Link>
+          <Link
+            href="/admin/blog"
+            className="group p-6 border border-gray-200 rounded-xl hover:border-[#45D1C1] hover:bg-gradient-to-br hover:from-white hover:to-[#45D1C1]/5 hover:shadow-lg transition-all duration-300"
+          >
+            <p className="font-bold text-gray-900 group-hover:text-[#45D1C1]">Blog Posts</p>
+            <p className="text-sm text-gray-600 mt-1">View & create blog posts</p>
+          </Link>
+          <Link
+            href="/admin/bookings"
+            className="group p-6 border border-gray-200 rounded-xl hover:border-[#45D1C1] hover:bg-gradient-to-br hover:from-white hover:to-[#45D1C1]/5 hover:shadow-lg transition-all duration-300"
+          >
+            <p className="font-bold text-gray-900 group-hover:text-[#45D1C1]">Bookings</p>
+            <p className="text-sm text-gray-600 mt-1">View all bookings</p>
+          </Link>
+          <Link
+            href="/admin/users"
+            className="group p-6 border border-gray-200 rounded-xl hover:border-[#45D1C1] hover:bg-gradient-to-br hover:from-white hover:to-[#45D1C1]/5 hover:shadow-lg transition-all duration-300"
+          >
+            <p className="font-bold text-gray-900 group-hover:text-[#45D1C1]">Users</p>
+            <p className="text-sm text-gray-600 mt-1">Manage user accounts</p>
+          </Link>
+          <Link
+            href="/admin/email-verification"
+            className="p-4 border border-gray-200 rounded-lg hover:border-[#45D1C1] hover:bg-slate-50 transition-all"
+          >
+            <p className="font-semibold text-gray-900">Email Verification</p>
+            <p className="text-sm text-gray-600 mt-1">Verify user emails</p>
+          </Link>
         </div>
       </div>
     </div>

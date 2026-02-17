@@ -11,6 +11,10 @@ export default function Navigation(): JSX.Element {
   const { user, isAuthenticated, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  if (pathname?.startsWith('/admin')) {
+    return <></>;
+  }
+
   const isActive = (path: string) => {
     return pathname === path ? 'text-[#45D1C1] font-semibold' : 'text-black';
   };
@@ -27,9 +31,13 @@ export default function Navigation(): JSX.Element {
         {/* LOGO */}
         <Link 
           href="/" 
-          className="text-2xl font-bold text-black flex-shrink-0 hover:text-[#45D1C1] transition-colors"
+          className="flex-shrink-0 hover:opacity-80 transition-opacity"
         >
-          JustHike
+          <img 
+            src="/Assets/Images/logo_justhike.png" 
+            alt="JustHike" 
+            className="h-16 w-auto"
+          />
         </Link>
         
         {/* NAV LINKS */}
@@ -129,9 +137,17 @@ export default function Navigation(): JSX.Element {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center space-x-2 bg-[#45D1C1] text-white px-4 py-2 rounded-lg hover:bg-[#3BC1B1] transition-colors"
                 >
-                  <div className="w-8 h-8 bg-white text-[#45D1C1] rounded-full flex items-center justify-center font-bold">
-                    {user?.name?.charAt(0) || 'U'}
-                  </div>
+                  {user?.profilePicture ? (
+                    <img
+                      src={user.profilePicture}
+                      alt={user?.name || 'User'}
+                      className="w-8 h-8 rounded-full object-cover border border-white"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-white text-[#45D1C1] rounded-full flex items-center justify-center font-bold">
+                      {user?.name?.charAt(0) || 'U'}
+                    </div>
+                  )}
                   <span className="font-medium">{user?.name || 'User'}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

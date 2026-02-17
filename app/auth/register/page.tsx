@@ -52,7 +52,7 @@ export default function RegisterPage() {
             <div className="mt-8 pt-8 border-t border-slate-200 text-center">
               <p className="text-slate-500">
                 Already have an account?{' '}
-                <a href="/auth/login" className="text-teal-500 hover:text-teal-600 font-semibold transition-colors">
+                <a href="/auth/login" className="text-[#45D1C1] hover:text-[#3BC1B1] font-semibold transition-colors">
                   Sign in
                 </a>
               </p>
@@ -64,14 +64,14 @@ export default function RegisterPage() {
                 By creating an account, you agree to our{' '}
                 <a 
                   href="/terms" 
-                  className="text-teal-500 hover:text-teal-600 transition-colors"
+                  className="text-[#45D1C1] hover:text-[#3BC1B1] transition-colors"
                 >
                   Terms
                 </a>{' '}
                 and{' '}
                 <a 
                   href="/privacy" 
-                  className="text-teal-500 hover:text-teal-600 transition-colors"
+                  className="text-[#45D1C1] hover:text-[#3BC1B1] transition-colors"
                 >
                   Privacy Policy
                 </a>

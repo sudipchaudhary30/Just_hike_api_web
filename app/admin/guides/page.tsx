@@ -93,24 +93,36 @@ function AdminGuidesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Guides Management</h1>
-            <p className="text-gray-600 mt-2">Manage trekking guides</p>
+        <div className="mb-8">
+          <div className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] rounded-full text-white text-xs font-semibold uppercase tracking-wide mb-4">
+            Management
           </div>
-          <Link
-            href="/admin/guides/create"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            + Add New Guide
-          </Link>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Trekking Guides</h1>
+              <p className="text-gray-600 mt-2 text-lg">Register and manage professional trekking guides</p>
+            </div>
+            <Link
+              href="/admin/guides/create"
+              className="bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white px-8 py-4 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+            >
+              ＋ New Guide
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="flex justify-center items-center py-32">
+            <div className="text-center">
+              <div className="inline-flex animate-spin h-16 w-16 text-[#45D1C1] mb-4">
+                <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-gray-600 font-medium">Loading guides...</p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -158,13 +170,13 @@ function AdminGuidesPage() {
                   <div className="flex gap-2">
                     <Link
                       href={`/admin/guides/${guide.id}/edit`}
-                      className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      className="flex-1 text-center px-4 py-2 rounded-lg font-semibold text-white bg-[#45D1C1] hover:bg-[#3BC1B1] transition-colors"
                     >
                       Edit
                     </Link>
                     <button
                       onClick={() => handleDelete(guide.id)}
-                      className="px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                      className="px-4 py-2 rounded-lg font-semibold text-white bg-[#45D1C1] hover:bg-[#3BC1B1] transition-colors"
                     >
                       Delete
                     </button>
@@ -180,7 +192,7 @@ function AdminGuidesPage() {
             <p className="text-gray-500 text-lg mb-4">No guides found</p>
             <Link
               href="/admin/guides/create"
-              className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="inline-block bg-[#45D1C1] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#3BC1B1] transition-colors"
             >
               Create First Guide
             </Link>

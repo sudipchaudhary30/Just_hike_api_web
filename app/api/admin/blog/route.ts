@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/middleware/adminMiddleware';
 import { parseFormData } from '@/lib/utils/multer';
-import path from 'path';
 
 /**
  * POST /api/admin/blog
@@ -16,55 +15,56 @@ export async function POST(request: NextRequest) {
 
     const contentType = request.headers.get('content-type') || '';
     let blogData: any = {};
-    let imageUrl: string | null = null;
+    let imageFile: any = null;
 
     if (contentType.includes('multipart/form-data')) {
       const { file, fields } = await parseFormData(request);
       blogData = fields;
-
-      if (file) {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.name);
-        const filename = 'blog-' + uniqueSuffix + ext;
-        
-        const fs = require('fs').promises;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'blog');
-        await fs.mkdir(uploadDir, { recursive: true });
-        
-        const filepath = path.join(uploadDir, filename);
-        await fs.writeFile(filepath, buffer);
-        imageUrl = `/uploads/blog/${filename}`;
-        blogData.image = imageUrl;
-      }
+      imageFile = file;
     } else {
       blogData = await request.json();
     }
 
-    // Parse tags array
+    // Parse tags array if string
     if (typeof blogData.tags === 'string') {
       blogData.tags = JSON.parse(blogData.tags);
     }
 
-    // Generate slug from title
-    const slug = blogData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    // Send to backend API
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+    const token = request.headers.get('authorization');
 
-    // TODO: Save to database
-    const newBlog = {
-      id: Date.now().toString(),
-      ...blogData,
-      slug,
-      author: authResult.user.name,
-      authorId: authResult.user.id,
-      isPublished: blogData.isPublished === 'true' || blogData.isPublished === true,
-      publishedAt: blogData.isPublished ? new Date().toISOString() : null,
-      views: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const backendFormData = new FormData();
+    backendFormData.append('title', blogData.title);
+    backendFormData.append('excerpt', blogData.excerpt);
+    backendFormData.append('content', blogData.content);
+    backendFormData.append('status', blogData.isPublished === 'true' || blogData.isPublished === true ? 'published' : 'draft');
+    backendFormData.append('tags', JSON.stringify(blogData.tags || []));
 
-    return NextResponse.json({ message: 'Blog post created successfully', blog: newBlog }, { status: 201 });
+    // Forward the image file directly if it exists
+    if (imageFile) {
+      const bytes = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      backendFormData.append('image', new File([buffer], imageFile.name, { type: imageFile.type }));
+    }
+
+    const backendResponse = await fetch(`${API_BASE_URL}/api/blogs`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { 'Authorization': token } : {}),
+      },
+      body: backendFormData,
+    });
+
+    if (!backendResponse.ok) {
+      throw new Error(`Failed to create blog post in backend: ${backendResponse.statusText}`);
+    }
+
+    const backendData = await backendResponse.json();
+    return NextResponse.json({ 
+      message: 'Blog post created successfully', 
+      blog: backendData.data || backendData.blog || backendData 
+    }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to create blog post' }, { status: 500 });
   }

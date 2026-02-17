@@ -91,28 +91,32 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow w-full max-w-md p-8 border border-gray-200">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#45D1C1]/10 to-transparent rounded-full -mr-48 -mt-48 blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-[#45D1C1]/10 to-transparent rounded-full -ml-48 -mb-48 blur-3xl"></div>
+
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 md:p-10 border border-gray-100 relative z-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4">
-            <Lock className="w-6 h-6 text-green-600" />
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1] rounded-xl mb-4 shadow-lg">
+            <Lock className="w-7 h-7 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Access</h1>
-          <p className="text-gray-600 text-sm mt-2">Secure admin panel</p>
+          <h1 className="text-3xl font-bold text-gray-900">Admin Access</h1>
+          <p className="text-gray-600 text-sm mt-2">Secure management panel</p>
         </div>
 
         {/* Credentials Info */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-700">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200 rounded-xl p-4 mb-8">
+          <p className="text-sm text-blue-900 font-medium">
             Use your backend admin credentials to log in.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6" action="#" method="post">
+        <form onSubmit={handleSubmit} className="space-y-5" action="#" method="post">
           {/* Email Input */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
               Email Address
             </label>
             <input
@@ -121,7 +125,7 @@ export default function AdminLoginPage() {
               value={formData.email}
               onChange={handleChange}
               autoComplete="email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent outline-none transition-all bg-white font-medium"
               placeholder="admin@example.com"
               disabled={isLoading}
               required
@@ -130,7 +134,7 @@ export default function AdminLoginPage() {
 
           {/* Password Input */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-3">
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
               Password
             </label>
             <div className="relative">
@@ -140,7 +144,7 @@ export default function AdminLoginPage() {
                 value={formData.password}
                 onChange={handleChange}
                 autoComplete="current-password"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white pr-10"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent outline-none transition-all bg-white pr-10 font-medium"
                 placeholder="••••••••"
                 disabled={isLoading}
                 required
@@ -148,7 +152,7 @@ export default function AdminLoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#45D1C1] transition-colors"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -159,7 +163,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+            className="w-full py-3 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white font-bold rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 mt-8"
           >
             {isLoading ? (
               <span className="flex items-center justify-center">
@@ -176,19 +180,19 @@ export default function AdminLoginPage() {
         </form>
 
         {/* Footer Links */}
-        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+        <div className="mt-8 pt-8 border-t border-gray-200 text-center">
           <a 
             href="/" 
-            className="text-sm text-gray-600 hover:text-green-600 transition-colors"
+            className="text-sm text-gray-600 hover:text-[#45D1C1] font-medium transition-colors"
           >
             ← Back to Home
           </a>
         </div>
 
         {/* Info Banner */}
-        <div className="mt-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-          <p className="text-xs text-gray-700">
-            Admin access is validated by your backend authentication.
+        <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg">
+          <p className="text-xs text-gray-700 leading-relaxed">
+            🔒 Admin access is validated securely by your backend authentication system.
           </p>
         </div>
       </div>

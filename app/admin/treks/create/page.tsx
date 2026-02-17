@@ -72,18 +72,26 @@ function CreateTrekPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Create New Trek Package</h1>
-          <p className="text-gray-600 mt-2">Add a new trekking package to the catalog</p>
+          <div className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] rounded-full text-white text-xs font-semibold uppercase tracking-wide mb-4">
+            Create New
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Trek Package</h1>
+          <p className="text-gray-600 mt-2 text-lg">Add a new trekking adventure to your catalog</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 md:p-10 space-y-8">
           {/* Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              <div className="w-1 h-6 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded mr-3"></div>
+              Basic Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Trek Name *
               </label>
               <input
@@ -92,12 +100,13 @@ function CreateTrekPage() {
                 value={formData.title}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="e.g., Mount Everest Base Camp Trek"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Location *
               </label>
               <input
@@ -106,12 +115,13 @@ function CreateTrekPage() {
                 value={formData.location}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="e.g., Himalayas, Nepal"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Duration (days) *
               </label>
               <input
@@ -121,12 +131,13 @@ function CreateTrekPage() {
                 onChange={handleChange}
                 required
                 min="1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="e.g., 14"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Difficulty *
               </label>
               <select
@@ -134,7 +145,7 @@ function CreateTrekPage() {
                 value={formData.difficulty}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
               >
                 <option value="easy">Easy</option>
                 <option value="moderate">Moderate</option>
@@ -143,7 +154,7 @@ function CreateTrekPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Price (USD) *
               </label>
               <input
@@ -153,12 +164,13 @@ function CreateTrekPage() {
                 onChange={handleChange}
                 required
                 min="0"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="e.g., 2500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Max Group Size *
               </label>
               <input
@@ -168,15 +180,21 @@ function CreateTrekPage() {
                 onChange={handleChange}
                 required
                 min="1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="e.g., 15"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
               />
             </div>
 
+            </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              <div className="w-1 h-6 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded mr-3"></div>
+              Additional Details
+            </h2>
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
               Description *
             </label>
             <textarea
@@ -184,14 +202,15 @@ function CreateTrekPage() {
               value={formData.description}
               onChange={handleChange}
               required
-              rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+              rows={5}
+              placeholder="Provide a comprehensive description of the trek..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
             />
           </div>
 
           {/* Images */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
               Trek Image *
             </label>
             <input
@@ -199,38 +218,39 @@ function CreateTrekPage() {
               accept="image/*"
               onChange={handleImageChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#45D1C1] file:text-white file:font-semibold"
             />
-            <p className="text-sm text-gray-500 mt-1">Upload the main trek image</p>
+            <p className="text-sm text-gray-500 mt-2">High-quality trek image for the catalog</p>
           </div>
 
           {/* Active Status */}
-          <div>
-            <label className="flex items-center">
+          <div className="bg-gradient-to-r from-[#45D1C1]/5 to-[#3BC1B1]/5 rounded-xl p-6 border border-[#45D1C1]/20">
+            <label className="flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 name="isActive"
                 checked={formData.isActive}
                 onChange={handleChange}
-                className="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                className="mr-3 h-5 w-5 text-[#45D1C1] focus:ring-[#45D1C1] border-gray-300 rounded"
               />
-              <span className="text-sm font-medium text-gray-700">Active (visible to users)</span>
+              <span className="font-bold text-gray-900">Active (visible to users)</span>
             </label>
+            <p className="text-sm text-gray-600 mt-2 ml-8">Enable this trek for immediate booking</p>
           </div>
 
           {/* Submit Button */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex gap-4 pt-6 border-t border-gray-200">
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-400"
+              className="flex-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white py-4 px-6 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:bg-gray-400 disabled:transform-none"
             >
-              {isLoading ? 'Creating...' : 'Create Trek Package'}
+              {isLoading ? 'Creating Trek...' : 'Create Trek Package'}
             </button>
             <button
               type="button"
               onClick={() => router.back()}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:border-[#45D1C1] hover:text-[#45D1C1] hover:bg-[#45D1C1]/5 transition-all duration-300"
             >
               Cancel
             </button>
