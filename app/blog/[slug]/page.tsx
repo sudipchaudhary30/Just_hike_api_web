@@ -67,7 +67,7 @@ export default function BlogDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-900 flex items-center justify-center">
         <div className="relative w-16 h-16">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-blue-600 rounded-full animate-spin"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] rounded-full animate-spin"></div>
           <div className="absolute inset-2 bg-slate-900 rounded-full"></div>
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function BlogDetailPage() {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-green-600 to-blue-600"></div>
+          <div className="w-full h-full bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1]"></div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
       </div>
@@ -114,13 +114,13 @@ export default function BlogDetailPage() {
         {/* Content Card */}
         <article className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl p-8 md:p-12">
           {/* Back Link */}
-          <Link href="/blog" className="text-green-400 hover:text-green-300 mb-8 font-semibold flex items-center gap-2 hover:gap-3 transition-all w-fit">
+          <Link href="/blog" className="text-[#45D1C1] hover:text-[#3BC1B1] mb-8 font-semibold flex items-center gap-2 hover:gap-3 transition-all w-fit">
             ← Back to Articles
           </Link>
 
           {/* Status Badge */}
           <div className="mb-6">
-            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-full text-xs font-bold uppercase tracking-wide">
+            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white rounded-full text-xs font-bold uppercase tracking-wide">
               {blog.status === 'published' ? 'Published' : 'Draft'}
             </span>
           </div>
@@ -133,7 +133,7 @@ export default function BlogDetailPage() {
           {/* Author & Date */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 pb-8 border-b border-slate-700/50">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-green-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1] rounded-full flex items-center justify-center text-white font-bold text-lg">
                 {blog.authorName.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -194,7 +194,7 @@ export default function BlogDetailPage() {
               {blog.tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1.5 bg-slate-700/50 text-slate-300 rounded-full text-sm hover:bg-green-600/20 hover:text-green-400 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 bg-slate-700/50 text-slate-300 rounded-full text-sm hover:bg-[#45D1C1]/20 hover:text-[#45D1C1] transition-colors cursor-pointer"
                 >
                   #{tag}
                 </span>
@@ -207,13 +207,13 @@ export default function BlogDetailPage() {
         <div className="mt-12 text-center">
           <p className="text-slate-400 mb-4">Share this article</p>
           <div className="flex justify-center gap-4">
-            <button className="w-12 h-12 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center hover:border-green-500/50 hover:bg-green-600/20 transition-all text-xl">
+            <button className="w-12 h-12 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center hover:border-[#45D1C1]/50 hover:bg-[#45D1C1]/20 transition-all text-xl">
               𝕏
             </button>
-            <button className="w-12 h-12 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center hover:border-green-500/50 hover:bg-green-600/20 transition-all text-xl">
+            <button className="w-12 h-12 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center hover:border-[#45D1C1]/50 hover:bg-[#45D1C1]/20 transition-all text-xl">
               FB
             </button>
-            <button className="w-12 h-12 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center hover:border-green-500/50 hover:bg-green-600/20 transition-all text-xl">
+            <button className="w-12 h-12 rounded-full bg-slate-800/50 border border-slate-700/50 flex items-center justify-center hover:border-[#45D1C1]/50 hover:bg-[#45D1C1]/20 transition-all text-xl">
               Link
             </button>
           </div>
