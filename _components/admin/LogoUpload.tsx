@@ -29,10 +29,10 @@ export default function LogoUpload({ onLogoChange, currentLogo }: LogoUploadProp
 
     // Create preview
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageUrl = event.target?.result as string;
-      setPreview(imageUrl);
-      onLogoChange(imageUrl);
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setPreview(result);
+      onLogoChange(result);
     };
     reader.readAsDataURL(file);
   };
