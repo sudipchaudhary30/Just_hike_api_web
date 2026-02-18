@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Image from 'next/image';
 
 export default function AdminLoginPage() {
   const [formData, setFormData] = useState({
@@ -99,8 +100,15 @@ export default function AdminLoginPage() {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 md:p-10 border border-gray-100 relative z-10">
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1] rounded-xl mb-4 shadow-lg">
-            <Lock className="w-7 h-7 text-white" />
+          <div className="flex items-center justify-center mb-4">
+            <Image
+              src="/Assets/Images/logo_justhike.png"
+              alt="JustHike"
+              width={160}
+              height={64}
+              className="h-12 w-auto"
+              priority
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Admin Access</h1>
           <p className="text-gray-600 text-sm mt-2">Secure management panel</p>

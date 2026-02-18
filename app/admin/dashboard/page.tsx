@@ -191,7 +191,6 @@ function AdminDashboardPage() {
         {/* Quick Stats Box */}
         <div className="bg-white rounded-xl p-8 shadow-md border border-gray-100 hover:shadow-xl transition-all duration-300">
           <div className="flex items-center mb-6">
-            <div className="w-2 h-8 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded-full mr-3"></div>
             <h2 className="text-lg font-bold text-gray-900">Platform Overview</h2>
           </div>
           <div className="space-y-4">
@@ -211,20 +210,17 @@ function AdminDashboardPage() {
         </div>
 
         {/* Featured Info */}
-        <div className="bg-gradient-to-br from-[#45D1C1] via-[#3BC1B1] to-[#2AA89B] rounded-xl p-8 text-white shadow-lg transform hover:scale-105 transition-transform duration-300 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-          <div className="relative z-10">
-            <h2 className="text-lg font-bold mb-2">Today's Activity</h2>
-            <p className="text-white/90 text-sm mb-6">Keep track of today's bookings and user registrations</p>
-            <div className="flex gap-8">
-              <div>
-                <p className="text-3xl font-bold">12</p>
-                <p className="text-sm text-white/80 mt-1">New Bookings</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold">8</p>
-                <p className="text-sm text-white/80 mt-1">New Users</p>
-              </div>
+        <div className="bg-[#45D1C1] rounded-xl p-8 text-white shadow-lg">
+          <h2 className="text-lg font-bold mb-2">Today's Activity</h2>
+          <p className="text-white/90 text-sm mb-6">Keep track of today's bookings and user registrations</p>
+          <div className="flex gap-8">
+            <div>
+              <p className="text-3xl font-bold">12</p>
+              <p className="text-sm text-white/80 mt-1">New Bookings</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold">8</p>
+              <p className="text-sm text-white/80 mt-1">New Users</p>
             </div>
           </div>
         </div>

@@ -89,14 +89,6 @@ export default function TreksPage() {
           </div>
         </div>
 
-        {/* Loading State */}
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-          </div>
-        ) : (
-          <>
-            {/* Trek Grid */}
       {/* Loading State */}
       {isLoading ? (
         <div className="flex justify-center items-center py-32">
@@ -124,7 +116,7 @@ export default function TreksPage() {
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
-                          <span className="text-white text-4xl font-bold">TREK</span>
+                        <span className="text-white text-4xl font-bold">TREK</span>
                       </div>
                     )}
                     
@@ -175,8 +167,8 @@ export default function TreksPage() {
               </Link>
             ))}
           </div>
-          </>
-        )}
+        </>
+      )}
       </div>
     </div>
   );

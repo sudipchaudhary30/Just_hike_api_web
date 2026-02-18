@@ -13,6 +13,8 @@ interface TrekAdminListItem {
   imageUrl?: string;
   thumbnailUrl?: string;
   isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 function AdminTreksPage() {
@@ -52,8 +54,15 @@ function AdminTreksPage() {
         imageUrl: trek.imageUrl || trek.image,
         thumbnailUrl: trek.thumbnailUrl || trek.image,
         isActive: trek.isActive,
+        createdAt: trek.createdAt,
+        updatedAt: trek.updatedAt,
       }));
-      setTreks(mapped);
+      const sorted = mapped.sort((a, b) => {
+        const aTime = a.updatedAt || a.createdAt || '';
+        const bTime = b.updatedAt || b.createdAt || '';
+        return new Date(bTime).getTime() - new Date(aTime).getTime();
+      });
+      setTreks(sorted);
     } catch (error: any) {
       console.error('Error fetching treks:', error);
       if (error.name === 'AbortError') {

@@ -8,7 +8,9 @@ import { toast } from 'react-hot-toast';
 interface TrekDetail {
   id: string;
   title: string;
+  overview?: string;
   description: string;
+  itinerary?: string;
   difficulty: 'easy' | 'moderate' | 'hard';
   durationDays: number;
   price: number;
@@ -46,7 +48,9 @@ export default function TrekDetailPage() {
         setTrek({
           id: t._id,
           title: t.title,
+          overview: t.overview || '',
           description: t.description,
+          itinerary: t.itinerary || '',
           difficulty: t.difficulty,
           durationDays: t.durationDays,
           price: t.price,
@@ -138,7 +142,7 @@ export default function TrekDetailPage() {
             {/* Overview */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Overview</h2>
-              <p className="text-gray-700 leading-relaxed">{trek.description}</p>
+              <p className="text-gray-700 leading-relaxed">{trek.overview || trek.description}</p>
               
               <div className="grid md:grid-cols-2 gap-4 mt-6">
                 <div className="flex items-center">
@@ -164,19 +168,46 @@ export default function TrekDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Description */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Description</h2>
+              <p className="text-gray-700 leading-relaxed">{trek.description}</p>
+            </div>
+
+            {/* Itinerary */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Itinerary</h2>
+              {trek.itinerary ? (
+                <ul className="space-y-2 text-gray-700">
+                  {trek.itinerary
+                    .split('\n')
+                    .map((line: string) => line.trim())
+                    .filter(Boolean)
+                    .map((line: string, idx: number) => (
+                      <li key={idx} className="flex gap-3">
+                        <span className="text-[#45D1C1] font-bold">•</span>
+                        <span>{line}</span>
+                      </li>
+                    ))}
+                </ul>
+              ) : (
+                <p className="text-gray-700">No itinerary provided.</p>
+              )}
+            </div>
           </div>
 
           {/* Sidebar - Booking Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
               <div className="mb-6">
-                <span className="text-3xl font-bold text-green-600">${trek.price}</span>
+                <span className="text-3xl font-bold text-[#45D1C1]">${trek.price}</span>
                 <span className="text-gray-500">/person</span>
               </div>
 
               <button
                 onClick={handleBookNow}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors mb-4"
+                className="w-full bg-[#45D1C1] text-white py-3 rounded-lg font-semibold hover:bg-[#3BC1B1] transition-colors mb-4"
               >
                 Book Now
               </button>

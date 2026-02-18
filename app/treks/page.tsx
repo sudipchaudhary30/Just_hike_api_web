@@ -14,6 +14,7 @@ interface TrekListItem {
   maxGroupSize: number;
   imageUrl?: string;
   thumbnailUrl?: string;
+  createdAt?: string;
 }
 
 export default function TreksPage() {
@@ -42,8 +43,14 @@ export default function TreksPage() {
         maxGroupSize: trek.maxGroupSize,
         imageUrl: trek.imageUrl || trek.image,
         thumbnailUrl: trek.thumbnailUrl || trek.image,
+        createdAt: trek.createdAt || trek.updatedAt,
       }));
-      setPackages(mapped);
+      const sorted = mapped.sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bTime - aTime;
+      });
+      setPackages(sorted);
     } catch (error) {
       console.error('Error fetching treks:', error);
     } finally {
@@ -156,7 +163,7 @@ export default function TreksPage() {
                           <span className="text-xs text-gray-500 font-medium">per person</span>
                         </div>
                         <button className="px-4 py-2.5 bg-[#45D1C1] text-white rounded-lg font-semibold text-sm hover:bg-[#3BC1B1] transition-all duration-300 shadow hover:shadow-lg">
-                          Explore →
+                          Book Now →
                         </button>
                       </div>
                     </div>

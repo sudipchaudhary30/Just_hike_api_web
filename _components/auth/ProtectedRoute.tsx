@@ -21,7 +21,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
         router.push('/auth/login');
       } else if (requireAdmin && user?.role !== 'admin') {
         toast.error('Access denied. Admin privileges required.');
-        router.push('/dashboard');
+        router.push('/admin/login');
       }
     }
   }, [isAuthenticated, isLoading, user, requireAdmin, router]);

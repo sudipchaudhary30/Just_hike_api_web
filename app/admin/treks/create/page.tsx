@@ -11,6 +11,7 @@ function CreateTrekPage() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    aboutPackage: '',
     location: '',
     durationDays: '',
     difficulty: 'moderate',
@@ -107,21 +108,6 @@ function CreateTrekPage() {
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
-                Location *
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                placeholder="e.g., Himalayas, Nepal"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
                 Duration (days) *
               </label>
               <input
@@ -169,22 +155,6 @@ function CreateTrekPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
-                Max Group Size *
-              </label>
-              <input
-                type="number"
-                name="maxGroupSize"
-                value={formData.maxGroupSize}
-                onChange={handleChange}
-                required
-                min="1"
-                placeholder="e.g., 15"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
-              />
-            </div>
-
             </div>
           </div>
 
@@ -194,18 +164,68 @@ function CreateTrekPage() {
               <div className="w-1 h-6 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded mr-3"></div>
               Additional Details
             </h2>
-            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
-              Description *
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-              rows={5}
-              placeholder="Provide a comprehensive description of the trek..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                  Location *
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., Himalayas, Nepal"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                  Max Group Size *
+                </label>
+                <input
+                  type="number"
+                  name="maxGroupSize"
+                  value={formData.maxGroupSize}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                  placeholder="e.g., 15"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                About Package *
+              </label>
+              <textarea
+                name="aboutPackage"
+                value={formData.aboutPackage}
+                onChange={handleChange}
+                required
+                rows={4}
+                placeholder="Write a short overview of the package..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+              />
+            </div>
+
+            <div className="mt-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                Description *
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                required
+                rows={5}
+                placeholder="Provide a comprehensive description of the trek..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+              />
+            </div>
           </div>
 
           {/* Images */}

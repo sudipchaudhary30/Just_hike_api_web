@@ -160,9 +160,6 @@ export default function Sidebar({
               {!isCollapsed && (
                 <>
                   <span className="font-semibold text-sm">{item.label}</span>
-                  {isActive(item.path) && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
                 </>
               )}
             </Link>

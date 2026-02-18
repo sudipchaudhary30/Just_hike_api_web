@@ -22,6 +22,7 @@ interface Trek {
   location: string
   imageUrl?: string
   description?: string
+  createdAt?: string
 }
 
 interface Blog {
@@ -32,6 +33,7 @@ interface Blog {
   imageUrl?: string
   authorName: string
   publishedAt?: string
+  createdAt?: string
 }
 
 export default function JustHikePage(): JSX.Element {
@@ -74,7 +76,7 @@ export default function JustHikePage(): JSX.Element {
       try {
         const response = await fetch('/api/treks')
         const data = await response.json()
-        const mappedTreks = (data.packages || []).slice(0, 6).map((trek: any) => ({
+        const mappedTreks = (data.packages || []).map((trek: any) => ({
           id: trek._id || trek.id,
           title: trek.title || trek.name,
           price: trek.price,
@@ -83,8 +85,14 @@ export default function JustHikePage(): JSX.Element {
           location: trek.location,
           imageUrl: trek.imageUrl || trek.image,
           description: trek.description,
+          createdAt: trek.createdAt || trek.updatedAt,
         }))
-        setTreks(mappedTreks)
+        const sortedTreks = mappedTreks.sort((a: Trek, b: Trek) => {
+          const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+          const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+          return bTime - aTime
+        })
+        setTreks(sortedTreks.slice(0, 6))
       } catch (error) {
         console.error('Error fetching treks:', error)
       } finally {
@@ -101,7 +109,7 @@ export default function JustHikePage(): JSX.Element {
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050'
         const response = await fetch(`${API_BASE_URL}/api/blogs`)
         const data = await response.json()
-        const mappedBlogs = (data.data || []).slice(0, 3).map((blog: any) => ({
+        const mappedBlogs = (data.data || []).map((blog: any) => ({
           id: blog._id,
           title: blog.title,
           excerpt: blog.excerpt,
@@ -109,8 +117,14 @@ export default function JustHikePage(): JSX.Element {
           imageUrl: blog.imageUrl,
           authorName: blog.author?.name || 'Admin',
           publishedAt: blog.publishedAt || blog.createdAt,
+          createdAt: blog.publishedAt || blog.createdAt,
         }))
-        setBlogs(mappedBlogs)
+        const sortedBlogs = mappedBlogs.sort((a: Blog, b: Blog) => {
+          const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+          const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+          return bTime - aTime
+        })
+        setBlogs(sortedBlogs.slice(0, 3))
       } catch (error) {
         console.error('Error fetching blogs:', error)
       } finally {
