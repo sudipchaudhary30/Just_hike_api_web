@@ -1,13 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
 
-function CreateGuidePage() {
+function EditGuidePage() {
   const router = useRouter();
+  const params = useParams<{ id: string }>();
+  const guideId = params?.id;
+
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,12 +22,53 @@ function CreateGuidePage() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  useEffect(() => {
+    const fetchGuide = async () => {
+      if (!guideId) return;
+
+      setIsFetching(true);
+      try {
+        const headers = getAuthHeaders();
+        const response = await fetch(`/api/admin/guides/${guideId}`, {
+          method: 'GET',
+          headers,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || 'Failed to load guide details');
+          router.push('/admin/guides');
+          return;
+        }
+
+        const guide = data.guide || {};
+        setFormData({
+          name: guide.name || '',
+          email: guide.email || '',
+          phoneNumber: guide.phoneNumber || '',
+          bio: guide.bio || '',
+          experienceYears: guide.experienceYears ? String(guide.experienceYears) : '',
+          languages: Array.isArray(guide.languages) ? guide.languages.join(', ') : '',
+        });
+      } catch (error) {
+        console.error('Error loading guide:', error);
+        alert('Failed to load guide details');
+        router.push('/admin/guides');
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchGuide();
+  }, [guideId, router]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,8 +79,9 @@ function CreateGuidePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (!guideId) return;
 
+    setIsLoading(true);
     try {
       const submitData = new FormData();
       submitData.append('name', formData.name);
@@ -43,12 +89,11 @@ function CreateGuidePage() {
       submitData.append('phoneNumber', formData.phoneNumber);
       submitData.append('bio', formData.bio);
       submitData.append('experienceYears', formData.experienceYears);
-      
-      // Convert languages string to array
+
       const languagesArray = formData.languages
         .split(',')
-        .map(lang => lang.trim())
-        .filter(lang => lang.length > 0);
+        .map((lang) => lang.trim())
+        .filter((lang) => lang.length > 0);
       submitData.append('languages', languagesArray.join(', '));
 
       if (imageFile) {
@@ -56,8 +101,8 @@ function CreateGuidePage() {
       }
 
       const headers = getAuthHeaders();
-      const response = await fetch('/api/admin/guides', {
-        method: 'POST',
+      const response = await fetch(`/api/admin/guides/${guideId}`, {
+        method: 'PUT',
         headers,
         body: submitData,
       });
@@ -65,29 +110,38 @@ function CreateGuidePage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Guide created successfully!');
+        alert('Guide updated successfully!');
         router.push('/admin/guides');
       } else {
-        alert(data.message || 'Failed to create guide');
+        alert(data.error || data.message || 'Failed to update guide');
       }
     } catch (error) {
-      console.error('Error creating guide:', error);
+      console.error('Error updating guide:', error);
       alert('An error occurred');
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (isFetching) {
+    return (
+      <div className="min-h-screen bg-white py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600">
+          Loading guide details...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Create New Guide</h1>
-          <p className="text-gray-600 mt-2">Add a new trekking guide to the system</p>
+          <h1 className="text-3xl font-bold text-gray-900">Edit Guide</h1>
+          <p className="text-gray-600 mt-2">Update trekking guide details</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
-          {/* Personal Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -151,7 +205,6 @@ function CreateGuidePage() {
             </div>
           </div>
 
-          {/* Bio */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Bio / About *
@@ -167,7 +220,6 @@ function CreateGuidePage() {
             />
           </div>
 
-          {/* Languages */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Languages (comma-separated) *
@@ -184,29 +236,26 @@ function CreateGuidePage() {
             <p className="text-sm text-gray-500 mt-1">Enter multiple languages separated by commas</p>
           </div>
 
-          {/* Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Profile Image *
+              Profile Image
             </label>
             <input
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1]"
             />
-            <p className="text-sm text-gray-500 mt-1">Upload a profile picture of the guide</p>
+            <p className="text-sm text-gray-500 mt-1">Upload a new image only if you want to replace the current one</p>
           </div>
 
-          {/* Submit Button */}
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
               disabled={isLoading}
               className="flex-1 bg-[#45D1C1] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#3BC1B1] transition-colors disabled:bg-gray-400"
             >
-              {isLoading ? 'Creating...' : 'Create Guide'}
+              {isLoading ? 'Updating...' : 'Update Guide'}
             </button>
             <button
               type="button"
@@ -222,10 +271,10 @@ function CreateGuidePage() {
   );
 }
 
-export default function CreateGuidePageWrapper() {
+export default function EditGuidePageWrapper() {
   return (
     <ProtectedRoute requireAdmin>
-      <CreateGuidePage />
+      <EditGuidePage />
     </ProtectedRoute>
   );
 }

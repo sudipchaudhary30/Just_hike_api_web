@@ -159,7 +159,7 @@ export default function TreksPage() {
                       {/* Footer */}
                       <div className="flex items-center justify-between">
                         <div className="flex flex-col">
-                          <span className="text-2xl font-bold text-[#45D1C1]">${pkg.price}</span>
+                          <span className="text-2xl font-bold text-[#45D1C1]">Rs {pkg.price}</span>
                           <span className="text-xs text-gray-500 font-medium">per person</span>
                         </div>
                         <button className="px-4 py-2.5 bg-[#45D1C1] text-white rounded-lg font-semibold text-sm hover:bg-[#3BC1B1] transition-all duration-300 shadow hover:shadow-lg">

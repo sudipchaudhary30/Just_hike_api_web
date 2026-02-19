@@ -148,7 +148,7 @@ function AdminTrekDetailPage() {
               </div>
               <div>
                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Price</div>
-                <div className="text-gray-900 font-semibold">${trek.price || 0}</div>
+                <div className="text-gray-900 font-semibold">Rs {trek.price || 0}</div>
               </div>
               <div>
                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Max Group Size</div>

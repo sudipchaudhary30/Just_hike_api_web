@@ -92,7 +92,7 @@ export default function BookingListItem({ booking, onCancel }: BookingListItemPr
             </div>
             <div>
               <p className="text-sm text-gray-500">Total Price</p>
-              <p className="font-semibold text-green-600 text-xl">${booking.totalPrice}</p>
+              <p className="font-semibold text-green-600 text-xl">Rs {booking.totalPrice}</p>
             </div>
           </div>
 

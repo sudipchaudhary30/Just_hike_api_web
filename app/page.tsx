@@ -44,6 +44,15 @@ export default function JustHikePage(): JSX.Element {
   const [treksLoading, setTreksLoading] = useState(true)
   const [blogsLoading, setBlogsLoading] = useState(true)
 
+  // Preload hero background image
+  useEffect(() => {
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'image'
+    link.href = '/Assets/Images/hero_image.webp'
+    document.head.appendChild(link)
+  }, [])
+
   // Fetch guides
   useEffect(() => {
     const fetchGuides = async () => {
@@ -151,9 +160,10 @@ export default function JustHikePage(): JSX.Element {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       {/* Hero Section */}
       <div className="relative overflow-hidden min-h-[600px] flex items-center" style={{
-        backgroundImage: `url('Assets/Images/hero_image.webp')`,
+        backgroundImage: `url('/Assets/Images/hero_image.webp')`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
       }}>
         <div className="absolute inset-0 bg-black/40"></div>
         
@@ -190,11 +200,8 @@ export default function JustHikePage(): JSX.Element {
                       <img
                         src={guide.imageUrl || `https://i.pravatar.cc/120?img=${Math.random() * 70}`}
                         alt={guide.name}
-                        className="h-24 w-24 rounded-full object-cover border-3 border-white group-hover:scale-110 transition-transform duration-300"
+                        className="h-24 w-24 rounded-full object-cover border-4 border-[#45D1C1] group-hover:scale-110 transition-transform duration-300"
                       />
-                      <div className="absolute -bottom-1 -right-1 h-8 w-8 bg-[#45D1C1] rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        ✓
-                      </div>
                     </div>
                     <h4 className="text-white font-semibold text-sm">{guide.name}</h4>
                   </div>
@@ -293,7 +300,7 @@ export default function JustHikePage(): JSX.Element {
                       <div>
                         <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#45D1C1] transition-colors">{trek.title}</h3>
                         
-                        <div className="space-y-2 mb-6 text-sm text-gray-600">
+                        <div className="space-y-2 mb-3 text-sm text-gray-600">
                           <div className="flex items-center gap-2">
                             <svg className="w-4 h-4 text-[#45D1C1]" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
@@ -310,7 +317,7 @@ export default function JustHikePage(): JSX.Element {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                         <div>
                           <div className="text-sm text-gray-500">Starting from</div>
                           <span className="text-2xl font-bold text-[#45D1C1]">Rs {trek.price}</span>
@@ -359,7 +366,7 @@ export default function JustHikePage(): JSX.Element {
                 <Link key={blog.id} href={`/blog/${blog.id}`}>
                   <div className="group overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full flex flex-col">
                     {/* Blog Image */}
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[#45D1C1]/20 to-[#3BC1B1]/20">
+                      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-teal-50 to-cyan-50">
                       {blog.imageUrl ? (
                         <img
                           src={blog.imageUrl}
@@ -368,7 +375,7 @@ export default function JustHikePage(): JSX.Element {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <svg className="w-12 h-12 text-[#45D1C1]/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17.001c0 5.591 3.824 10.404 9 11.623m0-13c5.5 0 10-4.745 10-10.999C22 5.004 17.5.25 12 .25m0 13v13m0-13C6.5 30.253 2 25.498 2 19.495" />
                           </svg>
                         </div>
@@ -376,7 +383,7 @@ export default function JustHikePage(): JSX.Element {
                       {/* Tag Badge */}
                       {blog.tags && blog.tags.length > 0 && (
                         <div className="absolute top-4 left-4">
-                          <span className="bg-[#45D1C1]/90 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                          <span className="bg-teal-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
                             {blog.tags[0]}
                           </span>
                         </div>
@@ -386,7 +393,7 @@ export default function JustHikePage(): JSX.Element {
                     {/* Blog Info */}
                     <div className="p-6 flex flex-col justify-between flex-1">
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#45D1C1] transition-colors">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#45D1C1] transition-colors">
                           {blog.title}
                         </h3>
                         <p className="text-gray-600 text-sm mb-4 line-clamp-3">
@@ -396,8 +403,8 @@ export default function JustHikePage(): JSX.Element {
 
                       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                         <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-[#45D1C1]/20 flex items-center justify-center">
-                            <span className="text-xs font-bold text-[#45D1C1]">{blog.authorName.charAt(0)}</span>
+                          <div className="h-8 w-8 rounded-full bg-teal-100 flex items-center justify-center">
+                            <span className="text-xs font-bold text-teal-600">{blog.authorName.charAt(0)}</span>
                           </div>
                           <div>
                             <p className="text-xs font-semibold text-gray-900">{blog.authorName}</p>
@@ -465,7 +472,7 @@ export default function JustHikePage(): JSX.Element {
                 description: 'Across the Himalayas' 
               },
             ].map((stat, idx) => (
-              <div key={idx} className="p-8 border border-[#45D1C1]/20 rounded-lg hover:border-[#45D1C1]/60 transition-colors">
+              <div key={idx} className="p-8 border border-gray-200 rounded-lg hover:border-teal-400 transition-colors">
                 <div className="text-4xl font-bold text-[#45D1C1] mb-4">
                   {stat.number}
                 </div>
@@ -498,12 +505,12 @@ export default function JustHikePage(): JSX.Element {
             {/* Right - Testimonial Cards */}
             <div className="relative h-96">
               {/* Card 1 - Front */}
-              <div className="absolute top-0 right-0 w-80 bg-white rounded-2xl p-6 z-30 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-[#45D1C1]">
+              <div className="absolute top-0 right-0 w-80 bg-white rounded-2xl p-6 z-30 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-teal-500">
                 <div className="flex items-start gap-4 mb-4">
                   <img 
                     src="https://i.pravatar.cc/80?img=1" 
                     alt="Traveler"
-                    className="w-16 h-16 rounded-full object-cover ring-2 ring-[#45D1C1]/30"
+                    className="w-16 h-16 rounded-full object-cover ring-2 ring-teal-200"
                   />
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">Alex Johnson</h4>
@@ -521,12 +528,12 @@ export default function JustHikePage(): JSX.Element {
               </div>
 
               {/* Card 2 - Middle */}
-              <div className="absolute top-12 right-20 w-80 bg-white rounded-2xl p-6 z-20 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-[#3BC1B1]">
+              <div className="absolute top-12 right-20 w-80 bg-white rounded-2xl p-6 z-20 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-cyan-500">
                 <div className="flex items-start gap-4 mb-4">
                   <img 
                     src="https://i.pravatar.cc/80?img=2" 
                     alt="Traveler"
-                    className="w-16 h-16 rounded-full object-cover ring-2 ring-[#45D1C1]/30"
+                    className="w-16 h-16 rounded-full object-cover ring-2 ring-teal-200"
                   />
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">Priya Sharma</h4>
@@ -544,12 +551,12 @@ export default function JustHikePage(): JSX.Element {
               </div>
 
               {/* Card 3 - Back */}
-              <div className="absolute top-24 right-40 w-80 bg-white rounded-2xl p-6 z-10 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-[#45D1C1]">
+              <div className="absolute top-24 right-40 w-80 bg-white rounded-2xl p-6 z-10 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-teal-500">
                 <div className="flex items-start gap-4 mb-4">
                   <img 
                     src="https://i.pravatar.cc/80?img=3" 
                     alt="Traveler"
-                    className="w-16 h-16 rounded-full object-cover ring-2 ring-[#45D1C1]/30"
+                    className="w-16 h-16 rounded-full object-cover ring-2 ring-teal-200"
                   />
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-900">Marco Rossi</h4>

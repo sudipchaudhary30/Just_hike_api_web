@@ -186,7 +186,7 @@ function AdminTreksPage() {
                         {trek.durationDays} days
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
-                        ${trek.price}
+                        Rs {trek.price}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize

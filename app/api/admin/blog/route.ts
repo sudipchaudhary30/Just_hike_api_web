@@ -25,9 +25,21 @@ export async function POST(request: NextRequest) {
       blogData = await request.json();
     }
 
-    // Parse tags array if string
+    // Parse tags safely
     if (typeof blogData.tags === 'string') {
-      blogData.tags = JSON.parse(blogData.tags);
+      const rawTags = blogData.tags.trim();
+      if (!rawTags) {
+        blogData.tags = [];
+      } else {
+        blogData.tags = rawTags
+          .split(',')
+          .map((tag: string) => tag.trim())
+          .filter(Boolean);
+      }
+    }
+
+    if (!Array.isArray(blogData.tags)) {
+      blogData.tags = [];
     }
 
     // Send to backend API
@@ -39,7 +51,7 @@ export async function POST(request: NextRequest) {
     backendFormData.append('excerpt', blogData.excerpt);
     backendFormData.append('content', blogData.content);
     backendFormData.append('status', blogData.isPublished === 'true' || blogData.isPublished === true ? 'published' : 'draft');
-    backendFormData.append('tags', JSON.stringify(blogData.tags || []));
+    backendFormData.append('tags', blogData.tags.join(', '));
 
     // Forward the image file directly if it exists
     if (imageFile) {

@@ -125,7 +125,7 @@ export default function AboutPage(): JSX.Element {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="bg-white border border-[#45D1C1]/20 rounded-2xl p-6 text-center shadow-sm hover:shadow-md transition-shadow">
                 <div className="h-16 w-16 rounded-full bg-[#45D1C1] text-white flex items-center justify-center text-xl font-bold mx-auto mb-4">AK</div>
-                <h3 className="text-gray-900 text-lg font-semibold">Aarav Khadka</h3>
+                <h3 className="text-gray-900 text-lg font-semibold">Sudip Chaudhary</h3>
                 <p className="text-[#45D1C1] font-medium mt-1">CEO</p>
                 <p className="text-gray-600 text-sm mt-3">Leads strategic direction, partnerships, and long-term growth.</p>
               </div>

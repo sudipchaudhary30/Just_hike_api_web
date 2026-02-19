@@ -25,9 +25,25 @@ export async function POST(request: NextRequest) {
       guideData = await request.json();
     }
 
-    // Parse languages array if string
+    // Parse languages array safely
     if (typeof guideData.languages === 'string') {
-      guideData.languages = JSON.parse(guideData.languages);
+      const rawLanguages = guideData.languages.trim();
+      if (!rawLanguages) {
+        guideData.languages = [];
+      } else {
+        guideData.languages = rawLanguages
+          .split(',')
+          .map((lang: string) => lang.trim())
+          .filter(Boolean);
+      }
+    }
+
+    if (!Array.isArray(guideData.languages)) {
+      guideData.languages = [];
+    }
+
+    if (!guideData.name || !guideData.email || !guideData.phoneNumber || !guideData.bio || !guideData.experienceYears) {
+      return NextResponse.json({ error: 'Missing required guide fields' }, { status: 400 });
     }
 
     // Send to backend API
@@ -39,8 +55,8 @@ export async function POST(request: NextRequest) {
     backendFormData.append('email', guideData.email);
     backendFormData.append('phoneNumber', guideData.phoneNumber);
     backendFormData.append('bio', guideData.bio);
-    backendFormData.append('experienceYears', guideData.experienceYears);
-    backendFormData.append('languages', JSON.stringify(guideData.languages || []));
+    backendFormData.append('experienceYears', String(guideData.experienceYears));
+    backendFormData.append('languages', guideData.languages.join(', '));
 
     // Forward the image file directly if it exists
     if (imageFile) {
@@ -49,16 +65,38 @@ export async function POST(request: NextRequest) {
       backendFormData.append('image', new File([buffer], imageFile.name, { type: imageFile.type }));
     }
 
-    const backendResponse = await fetch(`${API_BASE_URL}/api/guides`, {
-      method: 'POST',
-      headers: {
-        ...(token ? { 'Authorization': token } : {}),
-      },
-      body: backendFormData,
-    });
+    let backendResponse: Response;
+    try {
+      backendResponse = await fetch(`${API_BASE_URL}/api/guides`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { 'Authorization': token } : {}),
+        },
+        body: backendFormData,
+      });
+    } catch (error: any) {
+      return NextResponse.json(
+        { error: error?.message || 'Failed to reach backend guide service' },
+        { status: 502 }
+      );
+    }
 
     if (!backendResponse.ok) {
-      throw new Error(`Failed to create guide in backend: ${backendResponse.statusText}`);
+      let backendErrorMessage = backendResponse.statusText || 'Backend guide creation failed';
+      try {
+        const errorPayload = await backendResponse.json();
+        backendErrorMessage =
+          errorPayload?.message ||
+          errorPayload?.error ||
+          backendErrorMessage;
+      } catch {
+        // Ignore JSON parsing error and keep status text
+      }
+
+      return NextResponse.json(
+        { error: backendErrorMessage },
+        { status: backendResponse.status }
+      );
     }
 
     const backendData = await backendResponse.json();

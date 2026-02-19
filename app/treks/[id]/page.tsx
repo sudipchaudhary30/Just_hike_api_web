@@ -201,7 +201,7 @@ export default function TrekDetailPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-lg p-6 sticky top-4">
               <div className="mb-6">
-                <span className="text-3xl font-bold text-[#45D1C1]">${trek.price}</span>
+                <span className="text-3xl font-bold text-[#45D1C1]">Rs {trek.price}</span>
                 <span className="text-gray-500">/person</span>
               </div>
 

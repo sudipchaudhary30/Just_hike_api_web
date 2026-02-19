@@ -219,7 +219,7 @@ function EditTrekPage() {
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
-                  Price (USD) *
+                  Price (Rs) *
                 </label>
                 <input
                   type="number"

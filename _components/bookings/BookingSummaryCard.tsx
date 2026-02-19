@@ -57,7 +57,7 @@ export default function BookingSummaryCard({ trek, participants, totalPrice }: B
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-600">Price per person:</span>
-            <span className="font-medium">${trek.price}</span>
+            <span className="font-medium">Rs {trek.price}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Number of people:</span>
@@ -69,7 +69,7 @@ export default function BookingSummaryCard({ trek, participants, totalPrice }: B
       <div className="border-t pt-4">
         <div className="flex justify-between items-center">
           <span className="text-lg font-semibold text-gray-900">Total Amount:</span>
-          <span className="text-2xl font-bold text-green-600">${totalPrice}</span>
+          <span className="text-2xl font-bold text-green-600">Rs {totalPrice}</span>
         </div>
       </div>
 
