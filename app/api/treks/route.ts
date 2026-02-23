@@ -43,13 +43,22 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .lean();
 
-    const transformed = packages.map((pkg: any) => ({
-      ...pkg,
-      id: pkg._id?.toString() || pkg.id,
-      name: pkg.name || pkg.title,
-      duration: pkg.duration || pkg.durationDays,
-      image: pkg.image || pkg.imageUrl || pkg.thumbnailUrl,
-    }));
+    const transformed = packages.map((pkg: any) => {
+      const imagePath = pkg.image || pkg.imageUrl || pkg.thumbnailUrl;
+      let imageFileName = null;
+      if (typeof imagePath === 'string') {
+        const parts = imagePath.split('/');
+        imageFileName = parts.length > 0 ? parts[parts.length - 1] : imagePath;
+      }
+      return {
+        ...pkg,
+        id: pkg._id?.toString() || pkg.id,
+        name: pkg.name || pkg.title,
+        duration: pkg.duration || pkg.durationDays,
+        image: imagePath,
+        imageFileName,
+      };
+    });
 
     return NextResponse.json({
       packages: transformed,

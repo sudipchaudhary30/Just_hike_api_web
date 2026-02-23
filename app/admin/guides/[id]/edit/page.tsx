@@ -97,7 +97,7 @@ function EditGuidePage() {
       submitData.append('languages', languagesArray.join(', '));
 
       if (imageFile) {
-        submitData.append('image', imageFile);
+        submitData.append('guideImage', imageFile);
       }
 
       const headers = getAuthHeaders();

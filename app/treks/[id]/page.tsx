@@ -18,14 +18,62 @@ interface TrekDetail {
   maxGroupSize: number;
   imageUrl?: string;
   thumbnailUrl?: string;
+  imageFileName?: string;
 }
 
 export default function TrekDetailPage() {
+    // Image upload state
+    const [trekImage, setTrekImage] = useState<File | null>(null);
+    const [userImage, setUserImage] = useState<File | null>(null);
+    const [uploadStatus, setUploadStatus] = useState<string>('');
+
+    // Trek image upload handler
+    const handleTrekImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTrekImage(e.target.files?.[0] || null);
+    };
+    const handleTrekImageUpload = async () => {
+      if (!trekImage) return;
+      const formData = new FormData();
+      formData.append('trekImage', trekImage);
+      setUploadStatus('Uploading trek image...');
+      const res = await fetch(`${API_BASE_URL}/api/treks/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.imageUrl) {
+        setUploadStatus('Trek image uploaded! URL: ' + data.imageUrl);
+      } else {
+        setUploadStatus('Trek upload failed: ' + (data.error || 'Unknown error'));
+      }
+    };
+
+    // User image upload handler
+    const handleUserImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUserImage(e.target.files?.[0] || null);
+    };
+    const handleUserImageUpload = async () => {
+      if (!userImage) return;
+      const formData = new FormData();
+      formData.append('userImage', userImage);
+      setUploadStatus('Uploading user image...');
+      const res = await fetch(`${API_BASE_URL}/api/users/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.imageUrl) {
+        setUploadStatus('User image uploaded! URL: ' + data.imageUrl);
+      } else {
+        setUploadStatus('User upload failed: ' + (data.error || 'Unknown error'));
+      }
+    };
   const params = useParams();
   const trekId = Array.isArray(params.id) ? params.id[0] : params.id;
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const [trek, setTrek] = useState<TrekDetail | null>(null);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingModal, setShowBookingModal] = useState(false);
 
@@ -40,24 +88,33 @@ export default function TrekDetailPage() {
         setTrek(null);
         return;
       }
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
       const response = await fetch(`${API_BASE_URL}/api/treks/${trekId}`);
       const data = await response.json();
-      const t = data.data;
+      const t = data.package || data.data;
       if (t) {
+        // Construct full image URL
+        let imageUrl = t.imageUrl || t.image || t.thumbnailUrl || '';
+        if (imageUrl && !imageUrl.startsWith('http')) {
+          imageUrl = `${API_BASE_URL}${imageUrl}`;
+        }
+        let thumbnailUrl = t.thumbnailUrl || '';
+        if (thumbnailUrl && !thumbnailUrl.startsWith('http')) {
+          thumbnailUrl = `${API_BASE_URL}${thumbnailUrl}`;
+        }
         setTrek({
-          id: t._id,
-          title: t.title,
+          id: t._id || t.id,
+          title: t.title || t.name,
           overview: t.overview || '',
-          description: t.description,
+          description: t.description || '',
           itinerary: t.itinerary || '',
           difficulty: t.difficulty,
-          durationDays: t.durationDays,
+          durationDays: t.durationDays || t.duration,
           price: t.price,
           location: t.location,
           maxGroupSize: t.maxGroupSize,
-          imageUrl: t.imageUrl,
-          thumbnailUrl: t.thumbnailUrl,
+          imageUrl,
+          thumbnailUrl,
+          imageFileName: t.imageFileName || '',
         });
       } else {
         setTrek(null);
@@ -106,13 +163,27 @@ export default function TrekDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Image Upload UI */}
+      <div className="max-w-2xl mx-auto mt-8 mb-8 p-6 bg-white rounded-lg shadow">
+        <h2 className="text-xl font-bold mb-4">Upload Trek or User Image</h2>
+        <div className="mb-4">
+          <input type="file" accept="image/*" onChange={handleTrekImageChange} />
+          <button className="ml-2 px-4 py-2 bg-green-600 text-white rounded" onClick={handleTrekImageUpload}>Upload Trek Image</button>
+        </div>
+        <div className="mb-4">
+          <input type="file" accept="image/*" onChange={handleUserImageChange} />
+          <button className="ml-2 px-4 py-2 bg-blue-600 text-white rounded" onClick={handleUserImageUpload}>Upload User Image</button>
+        </div>
+        {uploadStatus && <div className="mt-2 text-sm text-gray-700">{uploadStatus}</div>}
+      </div>
       {/* Hero Image */}
       <div className="relative h-96 md:h-[500px]">
-        {trek.imageUrl || trek.thumbnailUrl ? (
+        {trek.imageUrl ? (
           <img
-            src={trek.imageUrl || trek.thumbnailUrl}
+            src={trek.imageUrl}
             alt={trek.title}
             className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.src = '/Assets/Images/hero_image.webp'; }}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">

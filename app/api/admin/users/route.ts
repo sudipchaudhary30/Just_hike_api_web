@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
       // Save the uploaded image if present
       if (file) {
-        imageUrl = await saveFile(file);
+        imageUrl = await saveFile(file, 'user');
         userData.image = imageUrl;
       }
     } else {

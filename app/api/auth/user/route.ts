@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       const { file, fields } = await parseFormData(request);
       userData = fields;
       if (file) {
-        imageUrl = await saveFile(file);
+        imageUrl = await saveFile(file, 'user');
         userData.profilePicture = imageUrl;
       }
     } else {

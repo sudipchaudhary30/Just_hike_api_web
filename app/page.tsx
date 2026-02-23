@@ -198,7 +198,7 @@ export default function JustHikePage(): JSX.Element {
                   <div key={guide.id} className="flex flex-col items-center group">
                     <div className="relative inline-block mb-2">
                       <img
-                        src={guide.imageUrl || `https://i.pravatar.cc/120?img=${Math.random() * 70}`}
+                        src={guide.imageUrl}
                         alt={guide.name}
                         className="h-24 w-24 rounded-full object-cover border-4 border-[#45D1C1] group-hover:scale-110 transition-transform duration-300"
                       />
@@ -439,143 +439,7 @@ export default function JustHikePage(): JSX.Element {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="relative py-12 md:py-14 bg-gradient-to-b from-blue-50 to-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Trusted by Adventurers</h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Join a growing community of mountain enthusiasts who've transformed their lives through unforgettable adventures
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { 
-                number: '50+', 
-                label: 'Trek Routes', 
-                description: 'Carefully curated mountain paths' 
-              },
-              { 
-                number: '120+', 
-                label: 'Expert Guides', 
-                description: 'Certified professionals' 
-              },
-              { 
-                number: '8500+', 
-                label: 'Happy Adventurers', 
-                description: 'Life-changing experiences' 
-              },
-              { 
-                number: '32', 
-                label: 'Destinations', 
-                description: 'Across the Himalayas' 
-              },
-            ].map((stat, idx) => (
-              <div key={idx} className="p-8 border border-gray-200 rounded-lg hover:border-teal-400 transition-colors">
-                <div className="text-4xl font-bold text-[#45D1C1] mb-4">
-                  {stat.number}
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{stat.label}</h3>
-                <p className="text-sm text-gray-600">{stat.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="bg-white py-12 md:py-14">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left Content */}
-            <div>
-              <div className="inline-block mb-4 px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg">
-                <span className="text-[#45D1C1] text-sm font-semibold">TESTIMONIALS</span>
-              </div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">What our peers say about us</h2>
-              <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-                Authentic reviews as well as the experience our guides hold defines the success we had over these years of service
-              </p>
-              <button className="px-8 py-3 bg-[#45D1C1] text-white rounded-full font-semibold hover:bg-[#3BC1B1] transition-all duration-300">
-                See all reviews
-              </button>
-            </div>
-
-            {/* Right - Testimonial Cards */}
-            <div className="relative h-96">
-              {/* Card 1 - Front */}
-              <div className="absolute top-0 right-0 w-80 bg-white rounded-2xl p-6 z-30 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-teal-500">
-                <div className="flex items-start gap-4 mb-4">
-                  <img 
-                    src="https://i.pravatar.cc/80?img=1" 
-                    alt="Traveler"
-                    className="w-16 h-16 rounded-full object-cover ring-2 ring-teal-200"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">Alex Johnson</h4>
-                    <p className="text-sm text-[#45D1C1]">Everest Trek, Jan 2024</p>
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm italic mb-4">
-                  "The best trekking experience of my life. Our guide was incredibly knowledgeable and made sure we were safe throughout."
-                </p>
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-[#45D1C1]">★</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Card 2 - Middle */}
-              <div className="absolute top-12 right-20 w-80 bg-white rounded-2xl p-6 z-20 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-cyan-500">
-                <div className="flex items-start gap-4 mb-4">
-                  <img 
-                    src="https://i.pravatar.cc/80?img=2" 
-                    alt="Traveler"
-                    className="w-16 h-16 rounded-full object-cover ring-2 ring-teal-200"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">Priya Sharma</h4>
-                    <p className="text-sm text-[#45D1C1]">Annapurna Trek, Dec 2024</p>
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm italic mb-4">
-                  "A really random quote found on the internet. Yes I'm not really creative. And enclosing it in double quotes cause aesthetics"
-                </p>
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-[#45D1C1]">★</span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Card 3 - Back */}
-              <div className="absolute top-24 right-40 w-80 bg-white rounded-2xl p-6 z-10 transform hover:scale-105 transition-transform border border-gray-100 border-l-4 border-l-teal-500">
-                <div className="flex items-start gap-4 mb-4">
-                  <img 
-                    src="https://i.pravatar.cc/80?img=3" 
-                    alt="Traveler"
-                    className="w-16 h-16 rounded-full object-cover ring-2 ring-teal-200"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">Marco Rossi</h4>
-                    <p className="text-sm text-[#45D1C1]">Inca Trail, Nov 2024</p>
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm italic mb-4">
-                  "Unforgettable adventure with professional guides. Highly recommended for everyone who loves mountains!"
-                </p>
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-[#45D1C1]">★</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+     
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-10">

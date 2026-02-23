@@ -71,13 +71,13 @@ export default function UserCreateForm() {
       }
       
       if (data.image && data.image[0]) {
-        formData.append('image', data.image[0]);
+        formData.append('profilePicture', data.image[0]);
       }
 
       const headers = getAuthHeaders(token);
       console.log('[UserCreateForm] Sending request with headers:', headers);
 
-      const response = await fetch(`/api/auth/user`, {
+      const response = await fetch(`http://localhost:5050/api/admin/users`, {
         method: 'POST',
         body: formData,
         headers: headers,

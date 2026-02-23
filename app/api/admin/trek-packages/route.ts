@@ -126,12 +126,14 @@ export async function GET(request: NextRequest) {
       id: pkg._id?.toString() || pkg.id,
     }));
 
-    return NextResponse.json({
-      packages: transformed,
-      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-    }, { status: 200 });
-  } catch (error: any) {
-    console.error('Error fetching trek packages:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch trek packages' }, { status: 500 });
-  }
-}
+        return NextResponse.json({
+          total,
+          packages: transformed,
+          page,
+          limit,
+        }, { status: 200 });
+      } catch (error: any) {
+        console.error('Error fetching trek packages:', error);
+        return NextResponse.json({ error: error.message || 'Failed to fetch trek packages' }, { status: 500 });
+      }
+    }

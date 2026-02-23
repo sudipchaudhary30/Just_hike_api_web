@@ -52,11 +52,11 @@ function CreateGuidePage() {
       submitData.append('languages', languagesArray.join(', '));
 
       if (imageFile) {
-        submitData.append('image', imageFile);
+        submitData.append('guideImage', imageFile);
       }
 
       const headers = getAuthHeaders();
-      const response = await fetch('/api/admin/guides', {
+      const response = await fetch('http://localhost:5050/api/guides', {
         method: 'POST',
         headers,
         body: submitData,

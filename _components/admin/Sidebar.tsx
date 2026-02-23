@@ -104,7 +104,7 @@ export default function Sidebar({
 
       <aside
         className={`fixed left-0 top-0 overflow-hidden bg-white text-gray-800 transition-all duration-300 z-30 border-r-2 border-gray-100 flex flex-col ${
-          isCollapsed ? 'w-24' : 'w-72'
+          isCollapsed ? 'w-24' : 'w-[796px]'
         }`}
         style={{ height: '100vh', minHeight: '100vh' }}
         role="navigation"

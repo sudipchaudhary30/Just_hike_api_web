@@ -98,7 +98,7 @@ export default function JustHikePage(): JSX.Element {
             <div key={index} className="text-center group cursor-pointer">
               <div className="relative mb-4 inline-block">
                 <img
-                  src={guide.image}
+                  src={guide.imageUrl}
                   alt={guide.name}
                   className="h-24 w-24 rounded-full object-cover ring-4 ring-green-100 group-hover:ring-green-400 transition-all duration-300 group-hover:scale-110 shadow-lg"
                 />

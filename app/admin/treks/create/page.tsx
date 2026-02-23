@@ -46,14 +46,15 @@ function CreateTrekPage() {
       });
 
       if (imageFile) {
-        submitData.append('image', imageFile);
+        submitData.append('trekImage', imageFile);
       }
 
       const headers = getAuthHeaders();
-      const response = await fetch('/api/admin/trek-packages', {
+      const response = await fetch('http://localhost:5050/api/treks', {
         method: 'POST',
         headers,
         body: submitData,
+        // If your backend is on a different domain, you may need to add credentials: 'include',
       });
 
       const data = await response.json();

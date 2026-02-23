@@ -51,8 +51,8 @@ function AdminTreksPage() {
         durationDays: trek.durationDays || trek.duration,
         price: trek.price,
         difficulty: trek.difficulty,
-        imageUrl: trek.imageUrl || trek.image,
-        thumbnailUrl: trek.thumbnailUrl || trek.image,
+        imageUrl: trek.imageUrl,
+        thumbnailUrl: trek.thumbnailUrl,
         isActive: trek.isActive,
         createdAt: trek.createdAt,
         updatedAt: trek.updatedAt,
@@ -94,6 +94,7 @@ function AdminTreksPage() {
       console.error('Error deleting trek:', error);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
@@ -162,9 +163,9 @@ function AdminTreksPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-12 w-12">
-                            {trek.thumbnailUrl || trek.imageUrl ? (
+                            {trek.imageUrl ? (
                               <img
-                                src={trek.thumbnailUrl || trek.imageUrl}
+                                src={trek.imageUrl}
                                 alt={trek.title}
                                 className="h-12 w-12 rounded object-cover"
                               />

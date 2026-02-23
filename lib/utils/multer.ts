@@ -5,11 +5,20 @@ import { NextRequest } from 'next/server';
 // Configure storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(process.cwd(), 'public', 'uploads', 'users'));
+    // Determine folder based on field name
+    let folder = 'users';
+    if (file.fieldname === 'trekImage' || req.body?.type === 'trek') folder = 'treks';
+    else if (file.fieldname === 'guideImage' || req.body?.type === 'guide') folder = 'guides';
+    else if (file.fieldname === 'blogImage' || req.body?.type === 'blog') folder = 'blogs';
+    cb(null, path.join(process.cwd(), 'public', 'uploads', folder));
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'user-' + uniqueSuffix + path.extname(file.originalname));
+    let prefix = 'user';
+    if (file.fieldname === 'trekImage' || req.body?.type === 'trek') prefix = 'trek';
+    else if (file.fieldname === 'guideImage' || req.body?.type === 'guide') prefix = 'guide';
+    else if (file.fieldname === 'blogImage' || req.body?.type === 'blog') prefix = 'blog';
+    cb(null, `${prefix}-${uniqueSuffix}${path.extname(file.originalname)}`);
   }
 });
 
@@ -61,7 +70,7 @@ export async function parseFormData(request: NextRequest) {
 /**
  * Save uploaded file to disk
  */
-export async function saveFile(file: File): Promise<string> {
+export async function saveFile(file: File, p0: string): Promise<string> {
   if (!file) {
     throw new Error('No file provided');
   }
@@ -69,21 +78,29 @@ export async function saveFile(file: File): Promise<string> {
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
+  // Determine folder and prefix based on file name or type
+  let folder = 'users';
+  let prefix = 'user';
+  if (file.name.startsWith('trek-') || file.type === 'trek') {
+    folder = 'treks';
+    prefix = 'trek';
+  } else if (file.name.startsWith('guide-') || file.type === 'guide') {
+    folder = 'guides';
+    prefix = 'guide';
+  } else if (file.name.startsWith('blog-') || file.type === 'blog') {
+    folder = 'blogs';
+    prefix = 'blog';
+  }
   // Create unique filename
   const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
   const ext = path.extname(file.name);
-  const filename = 'user-' + uniqueSuffix + ext;
-  
-  // Save to public/uploads/users directory
+  const filename = `${prefix}-${uniqueSuffix}${ext}`;
+  // Save to correct directory
   const fs = require('fs').promises;
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'users');
-  
-  // Create directory if it doesn't exist
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads', folder);
   await fs.mkdir(uploadDir, { recursive: true });
-  
   const filepath = path.join(uploadDir, filename);
   await fs.writeFile(filepath, buffer);
-
   // Return the public URL
-  return `/uploads/users/${filename}`;
+  return `/uploads/${folder}/${filename}`;
 }

@@ -74,7 +74,7 @@ export async function PUT(
 
       // Save the uploaded image if present
       if (file) {
-        imageUrl = await saveFile(file);
+        imageUrl = await saveFile(file, 'user');
         updateData.profilePicture = imageUrl;
       }
     } else {

@@ -21,6 +21,12 @@ export async function POST(request: NextRequest) {
       const { file, fields } = await parseFormData(request);
       guideData = fields;
       imageFile = file;
+      // Save guide image if present
+      if (imageFile) {
+        const { saveFile } = await import('@/lib/utils/multer');
+        const imageUrl = await saveFile(imageFile, 'guide');
+        guideData.image = imageUrl;
+      }
     } else {
       guideData = await request.json();
     }
