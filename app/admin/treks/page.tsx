@@ -18,7 +18,15 @@ interface TrekAdminListItem {
 }
 
 function AdminTreksPage() {
+    // Always use backend's domain/port for images.
+    // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
+    const getFullUrl = (url: string | undefined | null) => {
+      if (!url) return undefined;
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+    };
   const [treks, setTreks] = useState<TrekAdminListItem[]>([]);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -163,16 +171,35 @@ function AdminTreksPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-12 w-12">
-                            {trek.imageUrl ? (
-                              <img
-                                src={trek.imageUrl}
-                                alt={trek.title}
-                                className="h-12 w-12 rounded object-cover"
-                              />
+                            {trek.imageUrl === trek.thumbnailUrl ? (
+                              trek.imageUrl ? (
+                                <img
+                                  src={getFullUrl(trek.imageUrl)}
+                                  alt={trek.title}
+                                  className="h-12 w-12 rounded object-cover"
+                                />
+                              ) : (
+                                <div className="h-12 w-12 rounded bg-green-100 flex items-center justify-center text-xs font-semibold text-green-600">
+                                  TRK
+                                </div>
+                              )
                             ) : (
-                              <div className="h-12 w-12 rounded bg-green-100 flex items-center justify-center text-xs font-semibold text-green-600">
-                                TRK
-                              </div>
+                              <>
+                                {trek.imageUrl && (
+                                  <img
+                                    src={getFullUrl(trek.imageUrl)}
+                                    alt={trek.title}
+                                    className="h-12 w-12 rounded object-cover"
+                                  />
+                                )}
+                                {trek.thumbnailUrl && (
+                                  <img
+                                    src={getFullUrl(trek.thumbnailUrl)}
+                                    alt={trek.title + ' thumbnail'}
+                                    className="h-12 w-12 rounded object-cover"
+                                  />
+                                )}
+                              </>
                             )}
                           </div>
                           <div className="ml-4">
