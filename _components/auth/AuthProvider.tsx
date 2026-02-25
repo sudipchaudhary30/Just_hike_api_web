@@ -116,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Store in localStorage
       localStorage.setItem('auth_token', token);
+      localStorage.setItem('token', token); // Ensure compatibility with create trek page
       localStorage.setItem('user_data', JSON.stringify(userData));
       
       console.log('[Auth] Login successful - Token stored:', token.substring(0, 20) + '...');
