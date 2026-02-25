@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import path from 'path';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
@@ -176,3 +177,5 @@ export async function requireAuth(request: NextRequest): Promise<any> {
     };
   }
 }
+
+const baseUploadDir = path.join(__dirname, 'uploads');
