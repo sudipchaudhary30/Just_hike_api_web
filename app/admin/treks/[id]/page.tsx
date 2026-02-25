@@ -21,6 +21,13 @@ interface TrekDetail {
 }
 
 function AdminTrekDetailPage() {
+    // Always use backend's domain/port for images.
+    // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
+    const getFullUrl = (url: string | undefined | null) => {
+      if (!url) return undefined;
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+    };
   const params = useParams();
   const id = params?.id as string;
   const [trek, setTrek] = useState<TrekDetail | null>(null);
@@ -119,16 +126,35 @@ function AdminTrekDetailPage() {
 
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="h-64 bg-gray-100">
-            {trek.imageUrl || trek.thumbnailUrl ? (
-              <img
-                src={trek.imageUrl || trek.thumbnailUrl}
-                alt={trek.title}
-                className="w-full h-full object-cover"
-              />
+            {trek.imageUrl === trek.thumbnailUrl ? (
+              trek.imageUrl ? (
+                <img
+                  src={getFullUrl(trek.imageUrl)}
+                  alt={trek.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 font-semibold">
+                  No Image
+                </div>
+              )
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 font-semibold">
-                No Image
-              </div>
+              <>
+                {trek.imageUrl && (
+                  <img
+                    src={getFullUrl(trek.imageUrl)}
+                    alt={trek.title}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                {trek.thumbnailUrl && (
+                  <img
+                    src={getFullUrl(trek.thumbnailUrl)}
+                    alt={trek.title + ' thumbnail'}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </>
             )}
           </div>
 
