@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
+import Image from 'next/image';
 
 interface TrekEditFormData {
   title: string;
@@ -19,6 +20,12 @@ interface TrekEditFormData {
 }
 
 function EditTrekPage() {
+  const getFullUrl = (url: string | null) => {
+    if (!url) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+  };
+
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
@@ -27,6 +34,7 @@ function EditTrekPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
+  const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
   const [formData, setFormData] = useState<TrekEditFormData>({
     title: '',
     overview: '',
@@ -42,6 +50,7 @@ function EditTrekPage() {
 
   useEffect(() => {
     if (!id) return;
+    
     const load = async () => {
       try {
         setIsLoading(true);
@@ -50,10 +59,13 @@ function EditTrekPage() {
           headers,
           credentials: 'include',
         });
+        
         const data = await response.json();
+        
         if (!response.ok) {
           throw new Error(data?.error || 'Failed to load trek package');
         }
+        
         const pkg = data.package || {};
         setFormData({
           title: pkg.title || pkg.name || '',
@@ -67,7 +79,9 @@ function EditTrekPage() {
           maxGroupSize: String(pkg.maxGroupSize || ''),
           isActive: pkg.isActive ?? true,
         });
-        setCurrentImage(pkg.imageUrl || pkg.thumbnailUrl || pkg.image || null);
+        
+        setCurrentImage(getFullUrl(pkg.imageUrl || null));
+        setCurrentThumbnail(getFullUrl(pkg.thumbnailUrl || null));
       } catch (err: any) {
         alert(err.message || 'Failed to load trek');
       } finally {
@@ -101,21 +115,35 @@ function EditTrekPage() {
       Object.entries(formData).forEach(([key, value]) => {
         submitData.append(key, value.toString());
       });
+      
       if (imageFile) {
-        submitData.append('image', imageFile);
+        submitData.append('trekImage', imageFile);
       }
 
       const headers = getAuthHeaders();
+      // Don't set Content-Type header when using FormData - browser will set it with boundary
       const response = await fetch(`/api/admin/trek-packages/${id}`, {
         method: 'PUT',
-        headers,
+        headers: {
+          ...headers,
+          // Remove Content-Type if it exists in headers
+        },
         body: submitData,
       });
+      
       const data = await response.json();
+      
       if (!response.ok) {
         throw new Error(data?.error || 'Failed to update trek package');
       }
-
+      
+      // Always use imageUrl and thumbnailUrl from API response
+      if (data.data) {
+        setCurrentImage(getFullUrl(data.data.imageUrl || null));
+        setCurrentThumbnail(getFullUrl(data.data.thumbnailUrl || null));
+        setImageFile(null); // Clear the file input
+      }
+      
       alert('Trek package updated successfully!');
       router.push(`/admin/treks/${id}`);
     } catch (err: any) {
@@ -309,18 +337,46 @@ function EditTrekPage() {
             <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
               Trek Image
             </label>
-            {currentImage && (
-              <div className="mb-3">
-                <img src={currentImage ?? undefined} alt="Current trek" className="h-24 w-24 rounded object-cover" />
+            {(currentImage || currentThumbnail) && (
+              <div className="mb-3 flex gap-4 items-center">
+                {currentImage && (
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src={currentImage} 
+                      alt="Current trek" 
+                      className="h-24 w-24 rounded object-cover border border-gray-200"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                      }}
+                    />
+                    <span className="text-xs text-gray-500 mt-1">Current trek image</span>
+                  </div>
+                )}
+                {currentThumbnail && currentThumbnail !== currentImage && (
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src={currentThumbnail} 
+                      alt="Current thumbnail" 
+                      className="h-16 w-16 rounded object-cover border border-gray-200"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                      }}
+                    />
+                    <span className="text-xs text-gray-500 mt-1">Current thumbnail</span>
+                  </div>
+                )}
               </div>
             )}
             <input
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#45D1C1] file:text-white file:font-semibold"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#45D1C1] file:text-white file:font-semibold file:cursor-pointer hover:file:bg-[#3BC1B1]"
             />
             <p className="text-sm text-gray-500 mt-2">Upload a new image to replace the current one</p>
+            {imageFile && (
+              <p className="text-sm text-[#45D1C1] mt-1">Selected: {imageFile.name}</p>
+            )}
           </div>
 
           {/* Active Status */}
@@ -343,7 +399,7 @@ function EditTrekPage() {
             <button
               type="submit"
               disabled={isSaving}
-              className="flex-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white py-4 px-6 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:bg-gray-400 disabled:transform-none"
+              className="flex-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white py-4 px-6 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isSaving ? 'Saving Changes...' : 'Save Changes'}
             </button>
