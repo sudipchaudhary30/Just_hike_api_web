@@ -6,6 +6,19 @@ import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
 
 function CreateGuidePage() {
+    const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+    const [uploadedThumbnailUrl, setUploadedThumbnailUrl] = useState<string | null>(null);
+
+    // Helper to get full URL if needed
+    // Always use backend's port (5050) and the path from imageUrl/thumbnailUrl
+    // Only prepend http://localhost:5050/ if not already present
+    // Use imageUrl/thumbnailUrl from API response only.
+    // If not starting with http, prepend http://localhost:5050/
+    const getFullUrl = (url: string | null) => {
+      if (!url) return null;
+      if (url.startsWith('http')) return url;
+      return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+    };
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,8 +78,13 @@ function CreateGuidePage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Use imageUrl/thumbnailUrl from API response as src
+        if (data.data) {
+          setUploadedImageUrl(getFullUrl(data.data.imageUrl || null));
+          setUploadedThumbnailUrl(getFullUrl(data.data.thumbnailUrl || null));
+        }
         alert('Guide created successfully!');
-        router.push('/admin/guides');
+        setTimeout(() => router.push('/admin/guides'), 1500);
       } else {
         alert(data.message || 'Failed to create guide');
       }
@@ -87,6 +105,25 @@ function CreateGuidePage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+          {(uploadedImageUrl || uploadedThumbnailUrl) && (
+            <div className="flex flex-col items-center mb-6">
+              <span className="text-green-600 font-semibold mb-2">Image uploaded successfully!</span>
+              {uploadedImageUrl && (
+                <img
+                  src={uploadedImageUrl}
+                  alt="Guide"
+                  className="w-40 h-40 object-cover rounded-full shadow mb-2"
+                />
+              )}
+              {uploadedThumbnailUrl && (
+                <img
+                  src={uploadedThumbnailUrl}
+                  alt="Guide Thumbnail"
+                  className="w-24 h-24 object-cover rounded-full shadow border border-gray-200"
+                />
+              )}
+            </div>
+          )}
           {/* Personal Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
