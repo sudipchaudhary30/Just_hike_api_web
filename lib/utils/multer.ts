@@ -10,7 +10,12 @@ const storage = multer.diskStorage({
     if (file.fieldname === 'trekImage' || req.body?.type === 'trek') folder = 'treks';
     else if (file.fieldname === 'guideImage' || req.body?.type === 'guide') folder = 'guides';
     else if (file.fieldname === 'blogImage' || req.body?.type === 'blog') folder = 'blogs';
-    cb(null, path.join(process.cwd(), 'public', 'uploads', folder));
+    // Store trek images in JustHike_Backend/uploads/treks
+    if (folder === 'treks') {
+      cb(null, 'C:/Users/Victus/Documents/Developers/API/JustHike_Backend/uploads/treks');
+    } else {
+      cb(null, path.join(process.cwd(), 'public', 'uploads', folder));
+    }
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -81,15 +86,21 @@ export async function saveFile(file: File, p0: string): Promise<string> {
   // Determine folder and prefix based on file name or type
   let folder = 'users';
   let prefix = 'user';
+  let uploadDir;
   if (file.name.startsWith('trek-') || file.type === 'trek') {
     folder = 'treks';
     prefix = 'trek';
+    uploadDir = 'C:/Users/Victus/Documents/Developers/API/JustHike_Backend/uploads/treks';
   } else if (file.name.startsWith('guide-') || file.type === 'guide') {
     folder = 'guides';
     prefix = 'guide';
+    uploadDir = path.join(process.cwd(), 'public', 'uploads', folder);
   } else if (file.name.startsWith('blog-') || file.type === 'blog') {
     folder = 'blogs';
     prefix = 'blog';
+    uploadDir = path.join(process.cwd(), 'public', 'uploads', folder);
+  } else {
+    uploadDir = path.join(process.cwd(), 'public', 'uploads', folder);
   }
   // Create unique filename
   const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -97,7 +108,6 @@ export async function saveFile(file: File, p0: string): Promise<string> {
   const filename = `${prefix}-${uniqueSuffix}${ext}`;
   // Save to correct directory
   const fs = require('fs').promises;
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', folder);
   await fs.mkdir(uploadDir, { recursive: true });
   const filepath = path.join(uploadDir, filename);
   await fs.writeFile(filepath, buffer);
