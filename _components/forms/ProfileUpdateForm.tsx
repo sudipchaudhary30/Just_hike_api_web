@@ -12,15 +12,13 @@ interface ProfileFormData {
   name: string;
   email: string;
   phoneNumber?: string;
-  image?: FileList;
+  // image?: FileList;
 }
 
 export default function ProfileUpdateForm() {
   const { user, updateUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(
-    (user as any)?.image || user?.profilePicture || null
-  );
+  // const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const {
     register,
@@ -35,15 +33,7 @@ export default function ProfileUpdateForm() {
     },
   });
 
-  // Watch for image changes
-  const imageFile = watch('image');
-  if (imageFile && imageFile[0]) {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result as string);
-    };
-    reader.readAsDataURL(imageFile[0]);
-  }
+  // Image upload logic removed
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!user?.id) return;
@@ -66,22 +56,15 @@ export default function ProfileUpdateForm() {
         return;
       }
 
-      const formData = new FormData();
-      formData.append('name', data.name);
-      formData.append('email', data.email);
-      if (data.phoneNumber) {
-        formData.append('phoneNumber', data.phoneNumber);
-      }
-      if (data.image && data.image[0]) {
-        formData.append('image', data.image[0]);
-      }
-
-      const headers = getAuthHeaders(token);
-      console.log('[ProfileUpdateForm] Sending request with headers:', headers);
-
+      // Only send JSON, no image upload
+      const headers = { ...getAuthHeaders(token), 'Content-Type': 'application/json' };
       const response = await fetch(`/api/auth/${user.id}`, {
         method: 'PUT',
-        body: formData,
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          phoneNumber: data.phoneNumber,
+        }),
         headers: headers,
       });
 
@@ -105,10 +88,7 @@ export default function ProfileUpdateForm() {
         updatedUser.image = updatedUser.profilePicture;
       }
 
-      // If an image was uploaded but backend didn't return an image url, show error
-      if (data.image && data.image[0] && !updatedUser?.image) {
-        throw new Error('Image upload failed on server. No image URL returned.');
-      }
+      // Image upload logic removed
 
       // Update local user state
       updateUser(updatedUser);
@@ -123,35 +103,7 @@ export default function ProfileUpdateForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Profile Image */}
-      <div className="flex flex-col items-center space-y-4">
-        <div className="relative">
-          {previewImage ? (
-            <img
-              src={previewImage}
-              alt="Profile"
-              className="w-32 h-32 rounded-full object-cover border-4 border-green-600"
-            />
-          ) : (
-            <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-green-600">
-              <span className="text-4xl text-gray-500">
-                {user?.name?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
-        </div>
-        <div>
-          <label className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-            Change Photo
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              {...register('image')}
-            />
-          </label>
-        </div>
-      </div>
+      {/* Profile Image upload removed. Only profile info fields remain. */}
 
       {/* Form Fields */}
       <div className="grid md:grid-cols-2 gap-6">
