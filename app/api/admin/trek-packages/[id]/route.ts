@@ -69,12 +69,13 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         const filename = 'trek-' + uniqueSuffix + ext;
         
         const fs = require('fs').promises;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'treks');
+        const uploadDir = 'C:/Users/Victus/Documents/Developers/API/JustHike_Backend/uploads/treks';
         await fs.mkdir(uploadDir, { recursive: true });
         
         const filepath = path.join(uploadDir, filename);
         await fs.writeFile(filepath, buffer);
-        imageUrl = `/uploads/treks/${filename}`;
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+        imageUrl = `${API_BASE_URL}/uploads/treks/${filename}`;
         updateData.imageUrl = imageUrl;
         updateData.thumbnailUrl = imageUrl;
       }
