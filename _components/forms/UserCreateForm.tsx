@@ -14,12 +14,12 @@ interface UserCreateFormData {
   password: string;
   role: 'user' | 'admin';
   phoneNumber?: string;
-  image?: FileList;
+  // image?: FileList;
 }
 
 export default function UserCreateForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  // const [previewImage, setPreviewImage] = useState<string | null>(null);
   const router = useRouter();
   const API_BASE_URL = '';
 
@@ -35,15 +35,7 @@ export default function UserCreateForm() {
     },
   });
 
-  // Watch for image changes
-  const imageFile = watch('image');
-  if (imageFile && imageFile[0]) {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewImage(reader.result as string);
-    };
-    reader.readAsDataURL(imageFile[0]);
-  }
+  // Image upload logic removed
 
   const onSubmit = async (data: UserCreateFormData) => {
     try {
@@ -60,26 +52,17 @@ export default function UserCreateForm() {
       }
 
       // Always use FormData as per requirement (even without image)
-      const formData = new FormData();
-      formData.append('name', data.name);
-      formData.append('email', data.email);
-      formData.append('password', data.password);
-      formData.append('role', data.role);
-      
-      if (data.phoneNumber) {
-        formData.append('phoneNumber', data.phoneNumber);
-      }
-      
-      if (data.image && data.image[0]) {
-        formData.append('profilePicture', data.image[0]);
-      }
-
-      const headers = getAuthHeaders(token);
-      console.log('[UserCreateForm] Sending request with headers:', headers);
-
+      // Only send JSON, no image upload
+      const headers = { ...getAuthHeaders(token), 'Content-Type': 'application/json' };
       const response = await fetch(`http://localhost:5050/api/admin/users`, {
         method: 'POST',
-        body: formData,
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          role: data.role,
+          phoneNumber: data.phoneNumber,
+        }),
         headers: headers,
       });
 
@@ -91,7 +74,7 @@ export default function UserCreateForm() {
 
       toast.success('User created successfully!');
       reset();
-      setPreviewImage(null);
+      // setPreviewImage(null);
       router.push('/admin/users');
     } catch (error: any) {
       toast.error(error.message || 'Failed to create user');
@@ -103,33 +86,7 @@ export default function UserCreateForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Profile Image */}
-      <div className="flex flex-col items-center space-y-4">
-        <div className="relative">
-          {previewImage ? (
-            <img
-              src={previewImage}
-              alt="Preview"
-              className="w-32 h-32 rounded-full object-cover border-4 border-green-600"
-            />
-          ) : (
-            <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-green-600">
-              <span className="text-sm font-semibold text-gray-500">USR</span>
-            </div>
-          )}
-        </div>
-        <div>
-          <label className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-            Upload Photo
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              {...register('image')}
-            />
-          </label>
-        </div>
-      </div>
+      {/* Profile Image upload removed. Only user info fields remain. */}
 
       {/* Form Fields */}
       <div className="grid md:grid-cols-2 gap-6">
