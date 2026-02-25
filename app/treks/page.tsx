@@ -1,4 +1,7 @@
+
 'use client';
+
+import { MapPin, Users, ArrowRight } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -18,6 +21,13 @@ interface TrekListItem {
 }
 
 export default function TreksPage() {
+    // Always use backend's domain/port for images.
+    // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
+    const getFullUrl = (url: string | undefined | null) => {
+      if (!url) return undefined;
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+    };
   const [packages, setPackages] = useState<TrekListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
@@ -114,16 +124,35 @@ export default function TreksPage() {
                   <div className="group h-full bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer border border-gray-100">
                     {/* Trek Image */}
                     <div className="relative h-64 overflow-hidden bg-gray-200">
-                      {pkg.thumbnailUrl || pkg.imageUrl ? (
-                        <img
-                          src={pkg.thumbnailUrl || pkg.imageUrl}
-                          alt={pkg.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
+                      {pkg.imageUrl === pkg.thumbnailUrl ? (
+                        pkg.imageUrl ? (
+                          <img
+                            src={getFullUrl(pkg.imageUrl)}
+                            alt={pkg.title}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1] flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">TREK</span>
+                          </div>
+                        )
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1] flex items-center justify-center">
-                          <span className="text-white text-sm font-bold">TREK</span>
-                        </div>
+                        <>
+                          {pkg.imageUrl && (
+                            <img
+                              src={getFullUrl(pkg.imageUrl)}
+                              alt={pkg.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          )}
+                          {pkg.thumbnailUrl && (
+                            <img
+                              src={getFullUrl(pkg.thumbnailUrl)}
+                              alt={pkg.title + ' thumbnail'}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                          )}
+                        </>
                       )}
                       
                       {/* Top Badges */}
@@ -149,10 +178,12 @@ export default function TreksPage() {
                       {/* Quick Info */}
                       <div className="space-y-2.5 mb-5 pb-5 border-b border-gray-100">
                         <div className="flex items-center gap-3 text-sm text-gray-700">
-                          <span className="font-medium">» {pkg.location}</span>
+                          <MapPin className="w-4 h-4 text-[#45D1C1]" />
+                          <span className="font-medium">{pkg.location}</span>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-gray-700">
-                          <span className="font-medium">• Max {pkg.maxGroupSize} people</span>
+                          <Users className="w-4 h-4 text-[#45D1C1]" />
+                          <span className="font-medium">Max {pkg.maxGroupSize} people</span>
                         </div>
                       </div>
 
@@ -162,8 +193,9 @@ export default function TreksPage() {
                           <span className="text-2xl font-bold text-[#45D1C1]">Rs {pkg.price}</span>
                           <span className="text-xs text-gray-500 font-medium">per person</span>
                         </div>
-                        <button className="px-4 py-2.5 bg-[#45D1C1] text-white rounded-lg font-semibold text-sm hover:bg-[#3BC1B1] transition-all duration-300 shadow hover:shadow-lg">
-                          Book Now →
+                        <button className="px-4 py-2.5 bg-[#45D1C1] text-white rounded-lg font-semibold text-sm hover:bg-[#3BC1B1] transition-all duration-300 shadow hover:shadow-lg flex items-center gap-2">
+                          Book Now
+                          <ArrowRight className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
