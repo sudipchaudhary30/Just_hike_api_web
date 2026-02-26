@@ -30,10 +30,11 @@ function CreateTrekPage() {
   // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
   const getFullUrl = (url: string | null) => {
     if (!url) return null;
-    // If already absolute, return as is
+    // If url is already a relative path, return as is
+    if (url.startsWith('/')) return url;
+    // If url is absolute, return as is
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    // Otherwise, prepend backend server URL
-    return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+    return url;
   };
   const [formData, setFormData] = useState<TrekCreateFormData>({
     title: '',
