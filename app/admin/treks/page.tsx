@@ -22,7 +22,9 @@ function AdminTreksPage() {
     // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
     const getFullUrl = (url: string | undefined | null) => {
       if (!url) return undefined;
+      // If already a full URL, return as is
       if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      // Otherwise, prepend backend domain
       return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
     };
   const [treks, setTreks] = useState<TrekAdminListItem[]>([]);
@@ -231,21 +233,23 @@ function AdminTreksPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <Link
-                          href={`/admin/treks/${trek.id}`}
-                          className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white bg-[#45D1C1] hover:bg-[#3BC1B1]"
+                        <a
+                          href={`/treks/${trek.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white rounded font-semibold hover:opacity-90 transition"
                         >
                           View
-                        </Link>
+                        </a>
                         <Link
                           href={`/admin/treks/${trek.id}/edit`}
-                          className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white bg-[#45D1C1] hover:bg-[#3BC1B1]"
+                          className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white rounded font-semibold hover:opacity-90 transition"
                         >
                           Edit
                         </Link>
                         <button
                           onClick={() => handleDelete(trek.id)}
-                          className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white bg-[#45D1C1] hover:bg-[#3BC1B1]"
+                          className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white rounded font-semibold hover:opacity-90 transition"
                         >
                           Delete
                         </button>
