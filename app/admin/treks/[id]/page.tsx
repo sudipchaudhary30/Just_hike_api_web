@@ -1,70 +1,90 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
+import Image from 'next/image';
 
-interface TrekDetail {
-  id: string;
+interface TrekEditFormData {
   title: string;
-  description?: string;
-  location?: string;
-  durationDays?: number;
-  difficulty?: 'easy' | 'moderate' | 'hard' | string;
-  price?: number;
-  maxGroupSize?: number;
-  imageUrl?: string;
-  thumbnailUrl?: string;
-  isActive?: boolean;
+  overview: string;
+  description: string;
+  itinerary: string;
+  location: string;
+  durationDays: string;
+  difficulty: 'easy' | 'moderate' | 'hard';
+  price: string;
+  maxGroupSize: string;
+  isActive: boolean;
 }
 
-function AdminTrekDetailPage() {
-    // Always use backend's domain/port for images.
-    // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
-    const getFullUrl = (url: string | undefined | null) => {
-      if (!url) return undefined;
-      if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
-    };
+function EditTrekPage() {
+  const getFullUrl = (url: string | null) => {
+    if (!url) return null;
+    // Remove any leading domain from url if present
+    url = url.replace(/^https?:\/\/.+?\//, '/');
+    return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+  };
+
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
-  const [trek, setTrek] = useState<TrekDetail | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [currentImage, setCurrentImage] = useState<string | null>(null);
+  const [currentThumbnail, setCurrentThumbnail] = useState<string | null>(null);
+  const [formData, setFormData] = useState<TrekEditFormData>({
+    title: '',
+    overview: '',
+    description: '',
+    itinerary: '',
+    location: '',
+    durationDays: '',
+    difficulty: 'moderate',
+    price: '',
+    maxGroupSize: '',
+    isActive: true,
+  });
 
   useEffect(() => {
     if (!id) return;
+    
     const load = async () => {
       try {
         setIsLoading(true);
-        setError('');
         const headers = getAuthHeaders();
         const response = await fetch(`/api/admin/trek-packages/${id}`, {
           headers,
           credentials: 'include',
         });
+        
         const data = await response.json();
+        
         if (!response.ok) {
           throw new Error(data?.error || 'Failed to load trek package');
         }
+        
         const pkg = data.package || {};
-        setTrek({
-          id: pkg.id || pkg._id || id,
-          title: pkg.title || pkg.name || 'Untitled Trek',
+        setFormData({
+          title: pkg.title || pkg.name || '',
+          overview: pkg.overview || '',
           description: pkg.description || '',
+          itinerary: pkg.itinerary || '',
           location: pkg.location || '',
-          durationDays: pkg.durationDays || pkg.duration || 0,
+          durationDays: String(pkg.durationDays || pkg.duration || ''),
           difficulty: pkg.difficulty || 'moderate',
-          price: pkg.price || 0,
-          maxGroupSize: pkg.maxGroupSize || 0,
-          imageUrl: pkg.imageUrl || pkg.image || pkg.thumbnailUrl,
-          thumbnailUrl: pkg.thumbnailUrl || pkg.imageUrl || pkg.image,
+          price: String(pkg.price || ''),
+          maxGroupSize: String(pkg.maxGroupSize || ''),
           isActive: pkg.isActive ?? true,
         });
+        
+        setCurrentImage(getFullUrl(pkg.imageUrl || null));
+        setCurrentThumbnail(getFullUrl(pkg.thumbnailUrl || null));
       } catch (err: any) {
-        setError(err.message || 'Failed to load trek');
+        alert(err.message || 'Failed to load trek');
       } finally {
         setIsLoading(false);
       }
@@ -73,136 +93,335 @@ function AdminTrekDetailPage() {
     load();
   }, [id]);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImageFile(e.target.files[0] || null);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+      const submitData = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        submitData.append(key, value.toString());
+      });
+      
+      if (imageFile) {
+        submitData.append('trekImage', imageFile);
+      }
+
+      const headers = getAuthHeaders();
+      // Don't set Content-Type header when using FormData - browser will set it with boundary
+      const response = await fetch(`/api/admin/trek-packages/${id}`, {
+        method: 'PUT',
+        headers: {
+          ...headers,
+          // Remove Content-Type if it exists in headers
+        },
+        body: submitData,
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to update trek package');
+      }
+      
+      // Always use imageUrl and thumbnailUrl from API response
+      if (data.data) {
+        setCurrentImage(getFullUrl(data.data.imageUrl || null));
+        setCurrentThumbnail(getFullUrl(data.data.thumbnailUrl || null));
+        setImageFile(null); // Clear the file input
+      }
+      
+      alert('Trek package updated successfully!');
+      router.push(`/admin/treks/${id}`);
+    } catch (err: any) {
+      alert(err.message || 'Failed to update trek package');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center py-20 text-gray-600">Loading trek details...</div>
+          <div className="text-center py-20 text-gray-600">Loading trek package...</div>
         </div>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-red-600 font-semibold mb-4">{error}</p>
-            <Link href="/admin/treks" className="text-[#45D1C1] hover:text-[#3BC1B1] font-semibold">
-              Back to Treks
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!trek) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">{trek.title}</h1>
-            <p className="text-gray-600 mt-2">Trek package details</p>
+        <div className="mb-8">
+          <div className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] rounded-full text-white text-xs font-semibold uppercase tracking-wide mb-4">
+            Edit Trek
           </div>
-          <div className="flex gap-3">
-            <Link
-              href={`/admin/treks/${trek.id}/edit`}
-              className="bg-[#45D1C1] text-white px-5 py-2 rounded-lg font-semibold hover:bg-[#3BC1B1]"
-            >
-              Edit
-            </Link>
-            <Link
-              href="/admin/treks"
-              className="border border-gray-300 text-gray-700 px-5 py-2 rounded-lg font-semibold hover:border-[#45D1C1] hover:text-[#45D1C1]"
-            >
-              Back
-            </Link>
-          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Trek Package</h1>
+          <p className="text-gray-600 mt-2 text-lg">Update trek package details</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="h-64 bg-gray-100">
-            {trek.imageUrl === trek.thumbnailUrl ? (
-              trek.imageUrl ? (
-                <img
-                  src={getFullUrl(trek.imageUrl)}
-                  alt={trek.title}
-                  className="w-full h-full object-cover"
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 md:p-10 space-y-8">
+          {/* Basic Information */}
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              <div className="w-1 h-6 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded mr-3"></div>
+              Basic Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                  Trek Name *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., Mount Everest Base Camp Trek"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 font-semibold">
-                  No Image
-                </div>
-              )
-            ) : (
-              <>
-                {trek.imageUrl && (
-                  <img
-                    src={getFullUrl(trek.imageUrl)}
-                    alt={trek.title}
-                    className="w-full h-full object-cover"
-                  />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                  Location *
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g., Himalayas, Nepal"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                  Duration (days) *
+                </label>
+                <input
+                  type="number"
+                  name="durationDays"
+                  value={formData.durationDays}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                  placeholder="e.g., 14"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                  Difficulty *
+                </label>
+                <select
+                  name="difficulty"
+                  value={formData.difficulty}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+                >
+                  <option value="easy">Easy</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                  Price (Rs) *
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  placeholder="e.g., 2500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+                  Max Group Size *
+                </label>
+                <input
+                  type="number"
+                  name="maxGroupSize"
+                  value={formData.maxGroupSize}
+                  onChange={handleChange}
+                  required
+                  min="1"
+                  placeholder="e.g., 15"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Overview */}
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              <div className="w-1 h-6 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded mr-3"></div>
+              Overview
+            </h2>
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+              Overview *
+            </label>
+            <textarea
+              name="overview"
+              value={formData.overview}
+              onChange={handleChange}
+              required
+              rows={4}
+              placeholder="Write a brief overview of this trek package..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+            />
+          </div>
+
+          {/* Description and Itinerary */}
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+              <div className="w-1 h-6 bg-gradient-to-b from-[#45D1C1] to-[#3BC1B1] rounded mr-3"></div>
+              Additional Details
+            </h2>
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+              Description *
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              required
+              rows={5}
+              placeholder="Provide a comprehensive description of the trek..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+            />
+
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide mt-6">
+              Itinerary *
+            </label>
+            <textarea
+              name="itinerary"
+              value={formData.itinerary}
+              onChange={handleChange}
+              required
+              rows={6}
+              placeholder="Day 1: Arrival and briefing\nDay 2: Trek to base camp\n..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium"
+            />
+          </div>
+
+          {/* Images */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+              Trek Image
+            </label>
+            {(currentImage || currentThumbnail) && (
+              <div className="mb-3 flex gap-4 items-center">
+                {currentImage && (
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src={currentImage} 
+                      alt="Current trek" 
+                      className="h-24 w-24 rounded object-cover border border-gray-200"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                      }}
+                    />
+                    <span className="text-xs text-gray-500 mt-1">Current trek image</span>
+                  </div>
                 )}
-                {trek.thumbnailUrl && (
-                  <img
-                    src={getFullUrl(trek.thumbnailUrl)}
-                    alt={trek.title + ' thumbnail'}
-                    className="w-full h-full object-cover"
-                  />
+                {currentThumbnail && currentThumbnail !== currentImage && (
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src={currentThumbnail} 
+                      alt="Current thumbnail" 
+                      className="h-16 w-16 rounded object-cover border border-gray-200"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
+                      }}
+                    />
+                    <span className="text-xs text-gray-500 mt-1">Current thumbnail</span>
+                  </div>
                 )}
-              </>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300 font-medium file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#45D1C1] file:text-white file:font-semibold file:cursor-pointer hover:file:bg-[#3BC1B1]"
+            />
+            <p className="text-sm text-gray-500 mt-2">Upload a new image to replace the current one</p>
+            {imageFile && (
+              <p className="text-sm text-[#45D1C1] mt-1">Selected: {imageFile.name}</p>
             )}
           </div>
 
-          <div className="p-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Location</div>
-                <div className="text-gray-900 font-semibold">{trek.location || '—'}</div>
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Duration</div>
-                <div className="text-gray-900 font-semibold">{trek.durationDays || 0} days</div>
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Difficulty</div>
-                <div className="text-gray-900 font-semibold capitalize">{trek.difficulty || '—'}</div>
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Price</div>
-                <div className="text-gray-900 font-semibold">Rs {trek.price || 0}</div>
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Max Group Size</div>
-                <div className="text-gray-900 font-semibold">{trek.maxGroupSize || 0}</div>
-              </div>
-              <div>
-                <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Status</div>
-                <div className="text-gray-900 font-semibold">{trek.isActive ? 'Active' : 'Inactive'}</div>
-              </div>
-            </div>
-
-            <div>
-              <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Description</div>
-              <p className="text-gray-700 leading-relaxed">
-                {trek.description || 'No description available.'}
-              </p>
-            </div>
+          {/* Active Status */}
+          <div className="bg-gradient-to-r from-[#45D1C1]/5 to-[#3BC1B1]/5 rounded-xl p-6 border border-[#45D1C1]/20">
+            <label className="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                name="isActive"
+                checked={formData.isActive}
+                onChange={handleChange}
+                className="mr-3 h-5 w-5 text-[#45D1C1] focus:ring-[#45D1C1] border-gray-300 rounded"
+              />
+              <span className="font-bold text-gray-900">Active (visible to users)</span>
+            </label>
+            <p className="text-sm text-gray-600 mt-2 ml-8">Enable this trek for immediate booking</p>
           </div>
-        </div>
+
+          {/* Submit Button */}
+          <div className="flex gap-4 pt-6 border-t border-gray-200">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="flex-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white py-4 px-6 rounded-xl font-bold hover:shadow-lg transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isSaving ? 'Saving Changes...' : 'Save Changes'}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:border-[#45D1C1] hover:text-[#45D1C1] hover:bg-[#45D1C1]/5 transition-all duration-300"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 }
 
-export default function AdminTrekDetailPageWrapper() {
+export default function EditTrekPageWrapper() {
   return (
     <ProtectedRoute requireAdmin>
-      <AdminTrekDetailPage />
+      <EditTrekPage />
     </ProtectedRoute>
   );
 }
