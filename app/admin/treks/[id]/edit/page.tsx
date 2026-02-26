@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
@@ -80,8 +81,9 @@ function EditTrekPage() {
           isActive: pkg.isActive ?? true,
         });
         
-        setCurrentImage(getFullUrl(pkg.imageUrl || null));
-        setCurrentThumbnail(getFullUrl(pkg.thumbnailUrl || null));
+        // When setting the image after update or load:
+        setCurrentImage(getFullUrl((pkg.imageUrl || null) + '?t=' + Date.now()));
+        setCurrentThumbnail(getFullUrl((pkg.thumbnailUrl || null) + '?t=' + Date.now()));
       } catch (err: any) {
         alert(err.message || 'Failed to load trek');
       } finally {
@@ -101,8 +103,8 @@ function EditTrekPage() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImageFile(e.target.files[0] || null);
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
     }
   };
 
@@ -115,37 +117,37 @@ function EditTrekPage() {
       Object.entries(formData).forEach(([key, value]) => {
         submitData.append(key, value.toString());
       });
-      
+
       if (imageFile) {
         submitData.append('trekImage', imageFile);
       }
 
       const headers = getAuthHeaders();
-      // Don't set Content-Type header when using FormData - browser will set it with boundary
       const response = await fetch(`/api/admin/trek-packages/${id}`, {
         method: 'PUT',
         headers: {
           ...headers,
-          // Remove Content-Type if it exists in headers
         },
         body: submitData,
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data?.error || 'Failed to update trek package');
       }
-      
-      // Always use imageUrl and thumbnailUrl from API response
-      if (data.data) {
-        setCurrentImage(getFullUrl(data.data.imageUrl || null));
-        setCurrentThumbnail(getFullUrl(data.data.thumbnailUrl || null));
-        setImageFile(null); // Clear the file input
+
+      // Use the new imageUrl from the API response and add cache-busting
+      if (data.imageUrl) {
+        setCurrentImage(data.imageUrl + '?t=' + Date.now());
+      } else if (data.data && data.data.imageUrl) {
+        setCurrentImage(data.data.imageUrl + '?t=' + Date.now());
       }
-      
+      setImageFile(null);
+
       alert('Trek package updated successfully!');
-      router.push(`/admin/treks/${id}`);
+      // Do NOT immediately redirect here if you want to see the new image
+      // router.push(`/admin/treks/${id}`);
     } catch (err: any) {
       alert(err.message || 'Failed to update trek package');
     } finally {
@@ -337,36 +339,6 @@ function EditTrekPage() {
             <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
               Trek Image
             </label>
-            {(currentImage || currentThumbnail) && (
-              <div className="mb-3 flex gap-4 items-center">
-                {currentImage && (
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src={currentImage} 
-                      alt="Current trek" 
-                      className="h-24 w-24 rounded object-cover border border-gray-200"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                      }}
-                    />
-                    <span className="text-xs text-gray-500 mt-1">Current trek image</span>
-                  </div>
-                )}
-                {currentThumbnail && currentThumbnail !== currentImage && (
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src={currentThumbnail} 
-                      alt="Current thumbnail" 
-                      className="h-16 w-16 rounded object-cover border border-gray-200"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                      }}
-                    />
-                    <span className="text-xs text-gray-500 mt-1">Current thumbnail</span>
-                  </div>
-                )}
-              </div>
-            )}
             <input
               type="file"
               accept="image/*"
