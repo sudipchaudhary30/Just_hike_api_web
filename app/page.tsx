@@ -42,7 +42,10 @@ export default function JustHikePage(): JSX.Element {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [guidesLoading, setGuidesLoading] = useState(true)
   const [treksLoading, setTreksLoading] = useState(true)
-  const [blogsLoading, setBlogsLoading] = useState(true)
+  const [blogsLoading, setBlogsLoading] = useState(true);
+
+  // Search state (not visible in UI)
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Preload hero background image
   useEffect(() => {
@@ -156,6 +159,10 @@ export default function JustHikePage(): JSX.Element {
     }
   }
 
+  function handleImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
+    e.currentTarget.src = '/Assets/Images/hero_image.webp';
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-blue-50">
       {/* Hero Section */}
@@ -174,17 +181,30 @@ export default function JustHikePage(): JSX.Element {
           
           {/* Search Bar */}
           <div className="mb-10 max-w-xl mx-auto">
-            <div className="flex items-center gap-2 bg-white rounded-lg p-3">
+            <form
+              className="flex items-center gap-2 bg-white rounded-lg p-3"
+              onSubmit={e => {
+                e.preventDefault();
+                if (typeof window !== 'undefined') {
+                  window.location.href = `/treks?search=${encodeURIComponent(searchQuery)}`;
+                }
+              }}
+            >
               <input
                 type="text"
                 placeholder="Search treks, guides, destinations..."
                 className="flex-1 bg-transparent outline-none text-gray-800 placeholder:text-gray-400"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                autoComplete="off"
+                style={{ display: 'block' }}
               />
-              <Link href="/treks" className="px-6 py-2 bg-[#45D1C1] text-white rounded-lg font-semibold hover:bg-[#3BC1B1] transition-colors">
+              <button type="submit" className="px-6 py-2 bg-[#45D1C1] text-white rounded-lg font-semibold hover:bg-[#3BC1B1] transition-colors">
                 Search
-              </Link>
-            </div>
+              </button>
+            </form>
           </div>
+ 
 
           {/* Guides Carousel */}
           <div className="mt-10">
@@ -276,10 +296,14 @@ export default function JustHikePage(): JSX.Element {
                     <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300">
                       {trek.imageUrl ? (
                         <img
-                          src={trek.imageUrl}
+                          src={
+                            trek.imageUrl.startsWith('http')
+                              ? trek.imageUrl
+                              : `http://localhost:5050/${trek.imageUrl.replace(/^\/+/, '')}`
+                          }
                           alt={trek.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          onError={(e) => { e.currentTarget.src = '/Assets/Images/hero_image.webp'; }}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={handleImageError}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
@@ -373,7 +397,7 @@ export default function JustHikePage(): JSX.Element {
                           src={blog.imageUrl}
                           alt={blog.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          onError={(e) => { e.currentTarget.src = '/Assets/Images/hero_image.webp'; }}
+                          onError={handleImageError}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-teal-50 to-cyan-50 flex items-center justify-center">
@@ -456,15 +480,7 @@ export default function JustHikePage(): JSX.Element {
                   Discover authentic mountain adventures. Professional guides, unforgettable experiences.
                 </p>
                 <div className="flex gap-4 mt-6">
-                  <a href="#" className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-[#45D1C1] transition-colors text-sm font-semibold">
-                    f
-                  </a>
-                  <a href="#" className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-[#45D1C1] transition-colors text-sm font-semibold">
-                    X
-                  </a>
-                  <a href="#" className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center hover:bg-[#45D1C1] transition-colors text-sm font-semibold">
-                    in
-                  </a>
+                  {/* Social icons removed */}
                 </div>
               </div>
 
@@ -493,7 +509,7 @@ export default function JustHikePage(): JSX.Element {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-[#45D1C1]">→</span>
-                    <a href="tel:+977xxxx" className="hover:text-[#45D1C1] transition-colors">+977 1 XXXX XXXX</a>
+                    <a href="tel:+977 14222222" className="hover:text-[#45D1C1] transition-colors">+977 1 4222222</a>
                   </li>
                 </ul>
               </div>
