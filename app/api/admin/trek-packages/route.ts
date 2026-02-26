@@ -37,11 +37,11 @@ export async function POST(request: NextRequest) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const ext = path.extname(file.name);
         const filename = 'trek-' + uniqueSuffix + ext;
-        
+
         const fs = require('fs').promises;
         const uploadDir = 'C:/Users/Victus/Documents/Developers/API/JustHike_Backend/uploads/treks';
         await fs.mkdir(uploadDir, { recursive: true });
-        
+
         const filepath = path.join(uploadDir, filename);
         await fs.writeFile(filepath, buffer);
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
@@ -138,3 +138,88 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message || 'Failed to fetch trek packages' }, { status: 500 });
       }
     }
+
+/**
+ * PATCH /api/admin/trek-packages
+ * Update an existing trek package, only updating image if a new file is uploaded
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const authResult = await requireAdmin(request);
+    if (authResult.error) {
+      return NextResponse.json({ error: authResult.error }, { status: authResult.status });
+    }
+
+    const contentType = request.headers.get('content-type') || '';
+    let packageData: any = {};
+    let imageUrl: string | null = null;
+
+    if (contentType.includes('multipart/form-data')) {
+      const { file, fields } = await parseFormData(request);
+      packageData = fields;
+
+      if (file) {
+        // Save to trek-packages directory
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.name);
+        const filename = 'trek-' + uniqueSuffix + ext;
+
+        const fs = require('fs').promises;
+        const uploadDir = 'C:/Users/Victus/Documents/Developers/API/JustHike_Backend/uploads/treks';
+        await fs.mkdir(uploadDir, { recursive: true });
+
+        const filepath = path.join(uploadDir, filename);
+        await fs.writeFile(filepath, buffer);
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+        imageUrl = `${API_BASE_URL}/uploads/treks/${filename}`;
+        packageData.imageUrl = imageUrl;
+        packageData.thumbnailUrl = imageUrl;
+      }
+    } else {
+      packageData = await request.json();
+    }
+
+    // Parse array fields if they're strings
+    if (typeof packageData.inclusions === 'string') {
+      packageData.inclusions = JSON.parse(packageData.inclusions);
+    }
+    if (typeof packageData.exclusions === 'string') {
+      packageData.exclusions = JSON.parse(packageData.exclusions);
+    }
+
+    await connectToDatabase();
+    const TrekModel = mongoose.models.Trek || mongoose.model('Trek', new mongoose.Schema({}, { strict: false, collection: 'treks' }));
+
+    const trekId = packageData.id || packageData._id;
+    if (!trekId) {
+      return NextResponse.json({ error: 'Trek ID is required' }, { status: 400 });
+    }
+
+    // Only update imageUrl if a new file was uploaded
+    const updateData = { ...packageData };
+    if (!imageUrl) {
+      delete updateData.imageUrl;
+      delete updateData.thumbnailUrl;
+    }
+
+    updateData.updatedAt = new Date();
+
+    const updated = await TrekModel.findByIdAndUpdate(trekId, updateData, { new: true });
+    if (!updated) {
+      return NextResponse.json({ error: 'Trek not found' }, { status: 404 });
+    }
+
+    const saved = updated.toObject();
+    const responsePackage = {
+      ...saved,
+      id: saved._id?.toString() || saved.id,
+    };
+
+    return NextResponse.json({ message: 'Trek package updated successfully', package: responsePackage }, { status: 200 });
+  } catch (error: any) {
+    console.error('Error updating trek package:', error);
+    return NextResponse.json({ error: error.message || 'Failed to update trek package' }, { status: 500 });
+  }
+}
