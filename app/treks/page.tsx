@@ -1,9 +1,9 @@
-
 'use client';
 
 import { MapPin, Users, ArrowRight } from 'lucide-react';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface TrekListItem {
@@ -21,6 +21,8 @@ interface TrekListItem {
 }
 
 export default function TreksPage() {
+  const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const searchQuery = searchParams ? searchParams.get('search') || '' : '';
     // Always use backend's domain/port for images.
     // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
     const getFullUrl = (url: string | undefined | null) => {
@@ -34,7 +36,7 @@ export default function TreksPage() {
 
   useEffect(() => {
     fetchPackages();
-  }, [selectedDifficulty]);
+  }, [selectedDifficulty, searchQuery]);
 
   const fetchPackages = async () => {
     try {
@@ -42,7 +44,7 @@ export default function TreksPage() {
       const url = `/api/treks${selectedDifficulty ? `?difficulty=${selectedDifficulty}` : ''}`;
       const response = await fetch(url);
       const data = await response.json();
-      const mapped: TrekListItem[] = (data.packages || []).map((trek: any) => ({
+      let mapped: TrekListItem[] = (data.packages || []).map((trek: any) => ({
         id: trek._id || trek.id,
         title: trek.title || trek.name,
         description: trek.description,
@@ -55,6 +57,13 @@ export default function TreksPage() {
         thumbnailUrl: trek.thumbnailUrl || trek.image,
         createdAt: trek.createdAt || trek.updatedAt,
       }));
+      if (searchQuery) {
+        mapped = mapped.filter(pkg =>
+          pkg.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          pkg.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          pkg.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
       const sorted = mapped.sort((a, b) => {
         const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
