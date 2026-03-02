@@ -56,12 +56,20 @@ export const upload = multer({
 export async function parseFormData(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('image') as File | null;
+    const fileFieldNames = ['image', 'blogImage', 'guideImage', 'trekImage', 'profilePicture', 'avatar'];
+    let file: File | null = null;
+    for (const fieldName of fileFieldNames) {
+      const candidate = formData.get(fieldName);
+      if (candidate instanceof File && candidate.size > 0) {
+        file = candidate;
+        break;
+      }
+    }
     const fields: Record<string, any> = {};
 
     // Extract all form fields
     formData.forEach((value, key) => {
-      if (key !== 'image') {
+      if (!fileFieldNames.includes(key)) {
         fields[key] = value;
       }
     });
