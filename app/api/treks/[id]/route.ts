@@ -15,14 +15,22 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
     // Ensure imageUrl is a full backend URL
     let imageUrl = trekDoc.imageUrl;
-    if (imageUrl && !imageUrl.startsWith('http')) {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      imageUrl = `${API_BASE_URL}${imageUrl}`;
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+    if (imageUrl) {
+      // Remove repeated base if present
+      const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+      if (imageUrl.startsWith(doubleBase)) {
+        imageUrl = imageUrl.replace(`${API_BASE_URL}/`, '');
+      }
+      if (!imageUrl.startsWith('http')) {
+        imageUrl = `${API_BASE_URL}${imageUrl}`;
+      }
     }
     let thumbnailUrl = trekDoc.thumbnailUrl;
-    if (thumbnailUrl && !thumbnailUrl.startsWith('http')) {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      thumbnailUrl = `${API_BASE_URL}${thumbnailUrl}`;
+    if (thumbnailUrl) {
+      if (!thumbnailUrl.startsWith('http')) {
+        thumbnailUrl = `${API_BASE_URL}${thumbnailUrl}`;
+      }
     }
     const responsePackage = {
       ...trekDoc,
