@@ -27,8 +27,23 @@ export default function TreksPage() {
     // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
     const getFullUrl = (url: string | undefined | null) => {
       if (!url) return undefined;
-      if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+      const normalizedUrl = url.trim();
+      const baseUrl = 'http://localhost:5050';
+      const doubleBase = `${baseUrl}/${baseUrl}`;
+
+      if (normalizedUrl.startsWith(doubleBase)) {
+        return normalizedUrl.replace(`${baseUrl}/`, '');
+      }
+
+      if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+        return normalizedUrl;
+      }
+
+      if (normalizedUrl.startsWith(baseUrl)) {
+        return normalizedUrl;
+      }
+
+      return `${baseUrl}/${normalizedUrl.replace(/^\/+/, '')}`;
     };
   const [packages, setPackages] = useState<TrekListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
