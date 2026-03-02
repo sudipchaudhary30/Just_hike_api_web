@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import BookingListItem from '@/_components/bookings/BookingListItem';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
+import { toast } from 'react-hot-toast';
 
 interface Booking {
   id: string;
@@ -65,7 +66,12 @@ export default function UserBookingsPage() {
         status: booking.status,
         createdAt: booking.createdAt,
       }));
-      setBookings(mapped);
+      const sorted = mapped.sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bTime - aTime;
+      });
+      setBookings(sorted);
     } catch (error) {
       console.error('Error fetching bookings:', error);
     } finally {
@@ -87,24 +93,24 @@ export default function UserBookingsPage() {
       });
 
       if (response.ok) {
-        alert('Booking cancelled successfully');
+        toast.success('Booking cancelled successfully');
         fetchBookings();
       } else {
-        alert('Failed to cancel booking');
+        toast.error('Failed to cancel booking');
       }
     } catch (error) {
       console.error('Error cancelling booking:', error);
-      alert('An error occurred');
+      toast.error('An error occurred');
     }
   };
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-slate-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
-            <p className="text-gray-600 mt-2">View and manage your trek bookings</p>
+      <div className="min-h-screen bg-slate-50 py-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">My Bookings</h1>
+            <p className="text-gray-600 mt-1">View and manage your trek bookings</p>
           </div>
 
           {isLoading ? (
@@ -112,19 +118,19 @@ export default function UserBookingsPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
             </div>
           ) : bookings.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-md p-10 text-center">
               <div className="text-5xl mb-4 font-bold">TREK</div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">No bookings yet</h3>
               <p className="text-gray-600 mb-6">Start your adventure by booking a trek!</p>
               <Link
                 href="/treks"
-                className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                className="inline-block bg-[#45D1C1] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#3BC1B1] transition-colors"
               >
                 Browse Treks
               </Link>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {bookings.map((booking) => (
                 <BookingListItem key={booking.id} booking={booking} onCancel={handleCancelBooking} />
               ))}
