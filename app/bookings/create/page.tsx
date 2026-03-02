@@ -6,6 +6,7 @@ import { useAuth } from '@/_components/auth/AuthProvider';
 import Link from 'next/link';
 import BookingForm from '@/_components/bookings/BookingForm';
 import BookingSummaryCard from '@/_components/bookings/BookingSummaryCard';
+import { toast } from 'react-hot-toast';
 
 interface TrekDetails {
   id: string;
@@ -45,13 +46,12 @@ export default function CreateBookingPage() {
 
   const fetchTrekDetails = async () => {
     try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      const response = await fetch(`${API_BASE_URL}/api/treks/${trekId}`);
+      const response = await fetch(`/api/treks/${trekId}`);
       const data = await response.json();
-      const t = data.data;
+      const t = data?.package || data?.data || data?.trek || null;
       if (t) {
         setTrek({
-          id: t._id,
+          id: t._id || t.id,
           title: t.title,
           description: t.description,
           difficulty: t.difficulty,
@@ -76,7 +76,7 @@ export default function CreateBookingPage() {
 
     try {
       if (!trekId) {
-        alert('Missing trek selection');
+        toast.error('Missing trek selection');
         return;
       }
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
@@ -97,14 +97,14 @@ export default function CreateBookingPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Booking created successfully!');
+        toast.success('Booking created successfully!');
         router.push('/user/bookings');
       } else {
-        alert(data.message || 'Failed to create booking');
+        toast.error(data.message || 'Failed to create booking');
       }
     } catch (error) {
       console.error('Error creating booking:', error);
-      alert('An error occurred while creating the booking');
+      toast.error('An error occurred while creating the booking');
     } finally {
       setIsLoading(false);
     }
