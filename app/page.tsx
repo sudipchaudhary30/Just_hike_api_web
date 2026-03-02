@@ -36,6 +36,31 @@ interface Blog {
   createdAt?: string
 }
 
+const pickBlogImage = (blog: any) => {
+  return (
+    blog?.thumbnailUrl ||
+    blog?.thumbnail ||
+    blog?.thumb ||
+    blog?.imageUrl ||
+    blog?.image ||
+    blog?.featuredImage ||
+    blog?.coverImage ||
+    blog?.imagePath ||
+    blog?.image_path ||
+    blog?.bannerImage ||
+    blog?.heroImage ||
+    blog?.media?.thumbnailUrl ||
+    blog?.media?.imageUrl ||
+    blog?.media?.path ||
+    blog?.images?.thumbnail ||
+    blog?.images?.image ||
+    blog?.images?.cover ||
+    blog?.files?.image ||
+    blog?.files?.thumbnail ||
+    (blog?.imageFileName ? `/uploads/blog/${blog.imageFileName}` : undefined)
+  );
+}
+
 export default function JustHikePage(): JSX.Element {
   const [guides, setGuides] = useState<Guide[]>([])
   const [treks, setTreks] = useState<Trek[]>([])
@@ -118,15 +143,15 @@ export default function JustHikePage(): JSX.Element {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050'
-        const response = await fetch(`${API_BASE_URL}/api/blogs`)
+        const response = await fetch('/api/blog')
         const data = await response.json()
-        const mappedBlogs = (data.data || []).map((blog: any) => ({
-          id: blog._id,
+        const list = data?.data || data?.blogs || data?.results || []
+        const mappedBlogs = (Array.isArray(list) ? list : []).map((blog: any) => ({
+          id: blog._id || blog.id,
           title: blog.title,
           excerpt: blog.excerpt,
           tags: blog.tags || [],
-          imageUrl: blog.imageUrl,
+          imageUrl: pickBlogImage(blog),
           authorName: blog.author?.name || 'Admin',
           publishedAt: blog.publishedAt || blog.createdAt,
           createdAt: blog.publishedAt || blog.createdAt,
@@ -149,14 +174,40 @@ export default function JustHikePage(): JSX.Element {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy':
-        return 'bg-green-100 text-green-800'
+        return 'bg-green-100 text-green-800 border-green-300'
       case 'moderate':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300'
       case 'hard':
-        return 'bg-red-100 text-red-800'
+        return 'bg-red-100 text-red-800 border-red-300'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800 border-gray-300'
     }
+  }
+
+  const getFullImageUrl = (url: string | undefined | null) => {
+    if (!url) return undefined;
+    const normalizedUrl = url.trim().replace(/\\/g, '/');
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+    const doubleBase = `${baseUrl}/${baseUrl}`;
+
+    const uploadsIndex = normalizedUrl.indexOf('/uploads/');
+    if (uploadsIndex !== -1) {
+      return `${baseUrl}${normalizedUrl.slice(uploadsIndex)}`;
+    }
+
+    if (normalizedUrl.startsWith('uploads/')) {
+      return `${baseUrl}/${normalizedUrl}`;
+    }
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return normalizedUrl.replace(`${baseUrl}/`, '');
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return normalizedUrl;
+    }
+
+    return `${baseUrl}/${normalizedUrl.replace(/^\/+/, '')}`;
   }
 
   function handleImageError(e: React.SyntheticEvent<HTMLImageElement, Event>) {
@@ -291,64 +342,65 @@ export default function JustHikePage(): JSX.Element {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {treks.slice(0, 3).map((trek: Trek) => (
-                  <div key={trek.id} className="group overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
+                  <div key={trek.id} className="group h-full bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 flex flex-col">
                     {/* Trek Image */}
-                    <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300">
+                    <div className="relative h-64 overflow-hidden bg-gray-200">
                       {trek.imageUrl ? (
                         <img
-                          src={
-                            trek.imageUrl.startsWith('http')
-                              ? trek.imageUrl
-                              : `http://localhost:5050/${trek.imageUrl.replace(/^\/+/, '')}`
-                          }
+                          src={getFullImageUrl(trek.imageUrl)}
                           alt={trek.title}
-                          className="w-full h-full object-cover rounded-lg"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           onError={handleImageError}
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                          <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
+                        <div className="w-full h-full bg-gradient-to-br from-[#45D1C1] to-[#3BC1B1] flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">TREK</span>
                         </div>
                       )}
-                      {/* Difficulty Badge */}
-                      <div className="absolute top-4 right-4">
-                        <span className={`${getDifficultyColor(trek.difficulty)} px-3 py-1 rounded-full text-xs font-bold uppercase`}>
-                          {trek.difficulty}
+
+                      {/* Top Badges */}
+                      <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold backdrop-blur-md ${getDifficultyColor(trek.difficulty)} border border-white/20`}>
+                          {trek.difficulty.toUpperCase()}
+                        </span>
+                        <span className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-xs font-bold text-gray-900">
+                          {trek.durationDays}D
                         </span>
                       </div>
                     </div>
 
                     {/* Trek Info */}
-                    <div className="p-6 flex flex-col justify-between h-full">
+                    <div className="p-6 flex flex-col justify-between flex-1">
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#45D1C1] transition-colors">{trek.title}</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-[#45D1C1] transition-colors">{trek.title}</h3>
+                        {trek.description ? (
+                          <p className="text-gray-600 text-sm mb-4 line-clamp-2">{trek.description}</p>
+                        ) : null}
                         
-                        <div className="space-y-2 mb-3 text-sm text-gray-600">
-                          <div className="flex items-center gap-2">
+                        <div className="space-y-2.5 mb-5 pb-5 border-b border-gray-100">
+                          <div className="flex items-center gap-3 text-sm text-gray-700">
                             <svg className="w-4 h-4 text-[#45D1C1]" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                             </svg>
-                            <span>{trek.location}</span>
+                            <span className="font-medium">{trek.location}</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-3 text-sm text-gray-700">
                             <svg className="w-4 h-4 text-[#45D1C1]" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
                               <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"></path>
                             </svg>
-                            <span>{trek.durationDays} days</span>
+                            <span className="font-medium">{trek.durationDays} days</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                        <div>
-                          <div className="text-sm text-gray-500">Starting from</div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
                           <span className="text-2xl font-bold text-[#45D1C1]">Rs {trek.price}</span>
+                          <span className="text-xs text-gray-500 font-medium">per person</span>
                         </div>
                         <Link href={`/treks/${trek.id}`} className="relative z-10">
-                          <button className="px-4 py-2 bg-[#45D1C1] text-white rounded-lg font-semibold hover:bg-[#3BC1B1] transition-all duration-300 shadow hover:shadow-lg">
+                          <button className="px-4 py-2.5 bg-[#45D1C1] text-white rounded-lg font-semibold text-sm hover:bg-[#3BC1B1] transition-all duration-300 shadow hover:shadow-lg">
                             Book Now
                           </button>
                         </Link>
@@ -394,7 +446,7 @@ export default function JustHikePage(): JSX.Element {
                       <div className="relative h-48 overflow-hidden bg-gradient-to-br from-teal-50 to-cyan-50">
                       {blog.imageUrl ? (
                         <img
-                          src={blog.imageUrl}
+                          src={getFullImageUrl(blog.imageUrl)}
                           alt={blog.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           onError={handleImageError}
