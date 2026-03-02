@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
-import Button from '@/_components/ui/Button';
 import { getAuthHeaders } from '@/lib/auth';
 
 interface User {
@@ -12,6 +11,7 @@ interface User {
   email: string;
   role: string;
   image?: string | null;
+  profilePicture?: string | null;
   createdAt: string;
 }
 
@@ -25,6 +25,40 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+
+  const getFullImageUrl = (url?: string | null) => {
+    if (!url) return null;
+    const normalizedUrl = url.trim().replace(/\\/g, '/');
+    const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+    const uploadsIndex = normalizedUrl.indexOf('/uploads/');
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return normalizedUrl.replace(`${API_BASE_URL}/`, '');
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return normalizedUrl;
+    }
+
+    if (normalizedUrl.startsWith('/public/uploads/')) {
+      return `${API_BASE_URL}${normalizedUrl.replace('/public', '')}`;
+    }
+
+    if (normalizedUrl.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${normalizedUrl}`;
+    }
+
+    if (normalizedUrl.startsWith('uploads/')) {
+      return `${API_BASE_URL}/${normalizedUrl}`;
+    }
+
+    if (uploadsIndex !== -1) {
+      return `${API_BASE_URL}${normalizedUrl.slice(uploadsIndex)}`;
+    }
+
+    return `${API_BASE_URL}/${normalizedUrl.replace(/^\/+/, '')}`;
+  };
 
   useEffect(() => {
     fetchUsers(currentPage);
@@ -103,10 +137,14 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
 
   if (isLoading && users.length === 0) {
     return (
-      <div className="flex justify-center items-center py-12">
+      <div className="flex justify-center items-center py-32">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-green-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading users...</p>
+          <div className="inline-flex animate-spin h-16 w-16 text-[#45D1C1] mb-4">
+            <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p className="text-gray-600 font-medium">Loading users...</p>
         </div>
       </div>
     );
@@ -115,9 +153,9 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
   return (
     <div className="space-y-6">
       {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
+      <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 User
@@ -139,7 +177,7 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {users.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-12 text-center text-gray-500 text-lg font-medium">
                   No users found
                 </td>
               </tr>
@@ -148,14 +186,14 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      {user.image ? (
+                      {user.image || user.profilePicture ? (
                         <img
-                          src={user.image}
+                          src={getFullImageUrl(user.image || user.profilePicture) || undefined}
                           alt={user.name}
                           className="h-10 w-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center text-white font-semibold">
+                        <div className="h-10 w-10 rounded-full bg-[#45D1C1] flex items-center justify-center text-white font-semibold">
                           {user.name.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -186,19 +224,19 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => router.push(`/admin/users/${user.id}`)}
-                      className="text-green-600 hover:text-green-900 mr-4"
+                      className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white rounded font-semibold hover:opacity-90 transition mr-2"
                     >
                       View
                     </button>
                     <button
                       onClick={() => router.push(`/admin/users/${user.id}/edit`)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white rounded font-semibold hover:opacity-90 transition mr-2"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(user.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="inline-block px-3 py-1 bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] text-white rounded font-semibold hover:opacity-90 transition"
                     >
                       Delete
                     </button>
@@ -213,23 +251,23 @@ export default function UserTable({ initialUsers = [] }: UserTableProps) {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center items-center space-x-4">
-          <Button
-            variant="secondary"
+          <button
             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
+            className="px-4 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Previous
-          </Button>
+          </button>
           <span className="text-gray-700">
             Page {currentPage} of {totalPages}
           </span>
-          <Button
-            variant="secondary"
+          <button
             onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             Next
-          </Button>
+          </button>
         </div>
       )}
     </div>

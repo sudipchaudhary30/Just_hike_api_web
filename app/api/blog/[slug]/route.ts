@@ -1,75 +1,89 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/just_hike';
+
+async function connectToDatabase() {
+  if (mongoose.connection.readyState === 1) return;
+  await mongoose.connect(MONGODB_URI);
+}
+
+async function enrichAuthor(blog: any) {
+  const authorField = blog?.author;
+  const authorId =
+    typeof authorField === 'string'
+      ? authorField
+      : String(authorField?._id || authorField?.id || '');
+
+  if (!authorId || !mongoose.Types.ObjectId.isValid(authorId)) {
+    return blog;
+  }
+
+  try {
+    await connectToDatabase();
+    const UserModel =
+      mongoose.models.User ||
+      mongoose.model('User', new mongoose.Schema({}, { strict: false, collection: 'users' }));
+
+    const userDoc = await UserModel.findById(authorId).select('name profilePicture image').lean();
+    if (!userDoc) return blog;
+
+    return {
+      ...blog,
+      author: {
+        ...(typeof authorField === 'object' && authorField ? authorField : {}),
+        _id: authorId,
+        name: userDoc.name || blog?.authorName || 'Admin',
+        profilePicture: userDoc.profilePicture || userDoc.image || undefined,
+        image: userDoc.image || userDoc.profilePicture || undefined,
+      },
+    };
+  } catch {
+    return blog;
+  }
+}
 
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   try {
     const slug = params.slug;
 
-    // TODO: Fetch from database and increment views
-    const blog = {
-      id: '1',
-      title: 'Top 10 Trekking Tips for Beginners',
-      slug: 'top-10-trekking-tips-for-beginners',
-      content: `# Introduction
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
 
-Trekking in the mountains is an incredible experience that combines physical challenge with breathtaking natural beauty. Whether you're planning your first trek or looking to improve your skills, these essential tips will help you prepare properly and enjoy your adventure safely.
+    const bySlugResponse = await fetch(`${API_BASE_URL}/api/blogs/${slug}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
 
-## 1. Start with Proper Physical Preparation
+    if (bySlugResponse.ok) {
+      const payload = await bySlugResponse.json();
+      const blog = payload?.data || payload?.blog || payload;
+      const enrichedBlog = await enrichAuthor(blog);
+      return NextResponse.json({ data: enrichedBlog }, { status: 200 });
+    }
 
-Begin training at least 6-8 weeks before your trek. Focus on cardiovascular exercises like hiking, running, and cycling. Include strength training for your legs and core.
+    const listResponse = await fetch(`${API_BASE_URL}/api/blogs`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
 
-## 2. Invest in Quality Footwear
+    if (listResponse.ok) {
+      const payload = await listResponse.json();
+      const list = payload?.data || payload?.blogs || payload?.results || [];
+      const found = Array.isArray(list)
+        ? list.find((item: any) => {
+            const id = String(item?._id || item?.id || '');
+            const itemSlug = String(item?.slug || '');
+            return id === slug || itemSlug === slug;
+          })
+        : null;
 
-Your boots are the most important piece of equipment. Break them in thoroughly before your trek to avoid blisters.
+      if (found) {
+        const enrichedBlog = await enrichAuthor(found);
+        return NextResponse.json({ data: enrichedBlog }, { status: 200 });
+      }
+    }
 
-## 3. Pack Smart and Light
-
-Every extra pound matters. Stick to essentials and use lightweight gear when possible.
-
-## 4. Stay Hydrated
-
-Drink water regularly throughout the day, even before you feel thirsty. Dehydration at altitude can be dangerous.
-
-## 5. Acclimatize Properly
-
-Don't rush altitude gain. Follow the "climb high, sleep low" principle and take rest days.
-
-## 6. Listen to Your Body
-
-Know the signs of altitude sickness and don't hesitate to descend if symptoms appear.
-
-## 7. Respect the Environment
-
-Follow Leave No Trace principles and respect local customs and culture.
-
-## 8. Hire a Guide
-
-For your first trek, especially in remote areas, a qualified guide adds safety and enhances the experience.
-
-## 9. Get Proper Insurance
-
-Ensure your travel insurance covers high-altitude trekking and emergency evacuation.
-
-## 10. Embrace the Journey
-
-Focus on the experience, not just reaching the destination. Take time to enjoy the views and connect with fellow trekkers.
-
-## Conclusion
-
-With proper preparation and the right mindset, your first trekking adventure will be unforgettable. Start planning today and get ready for the journey of a lifetime!`,
-      excerpt: 'Essential tips to prepare for your first trekking adventure in the mountains.',
-      author: 'Admin User',
-      authorId: '1',
-      image: '/uploads/blog/tips.jpg',
-      category: 'Tips & Guides',
-      tags: ['trekking', 'beginners', 'tips'],
-      isPublished: true,
-      publishedAt: '2026-01-20T10:00:00Z',
-      views: 150,
-      createdAt: '2026-01-15T10:00:00Z',
-      updatedAt: '2026-01-20T10:00:00Z',
-    };
-
-    return NextResponse.json({ blog }, { status: 200 });
+    return NextResponse.json({ error: 'Blog post not found' }, { status: 404 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

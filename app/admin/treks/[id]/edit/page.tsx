@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
 import Image from 'next/image';
+import { toast } from 'react-hot-toast';
 
 interface TrekEditFormData {
   title: string;
@@ -23,8 +24,12 @@ interface TrekEditFormData {
 function EditTrekPage() {
   const getFullUrl = (url: string | null) => {
     if (!url) return null;
+    // If already a full URL, return as is
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+    // If url already contains the base URL, do not prepend again
+    const baseUrl = 'http://localhost:5050';
+    if (url.startsWith(baseUrl)) return url;
+    return `${baseUrl}/${url.replace(/^\/+/, '')}`;
   };
 
   const params = useParams();
@@ -82,10 +87,10 @@ function EditTrekPage() {
         });
         
         // When setting the image after update or load:
-        setCurrentImage(getFullUrl((pkg.imageUrl || null) + '?t=' + Date.now()));
-        setCurrentThumbnail(getFullUrl((pkg.thumbnailUrl || null) + '?t=' + Date.now()));
+        setCurrentImage(pkg.imageUrl ? getFullUrl(pkg.imageUrl) + '?t=' + Date.now() : null);
+        setCurrentThumbnail(pkg.thumbnailUrl ? getFullUrl(pkg.thumbnailUrl) + '?t=' + Date.now() : null);
       } catch (err: any) {
-        alert(err.message || 'Failed to load trek');
+        toast.error(err.message || 'Failed to load trek');
       } finally {
         setIsLoading(false);
       }
@@ -139,17 +144,17 @@ function EditTrekPage() {
 
       // Use the new imageUrl from the API response and add cache-busting
       if (data.imageUrl) {
-        setCurrentImage(data.imageUrl + '?t=' + Date.now());
+        setCurrentImage(getFullUrl(data.imageUrl) + '?t=' + Date.now());
       } else if (data.data && data.data.imageUrl) {
-        setCurrentImage(data.data.imageUrl + '?t=' + Date.now());
+        setCurrentImage(getFullUrl(data.data.imageUrl) + '?t=' + Date.now());
       }
       setImageFile(null);
 
-      alert('Trek package updated successfully!');
+      toast.success('Trek package updated successfully!');
       // Do NOT immediately redirect here if you want to see the new image
       // router.push(`/admin/treks/${id}`);
     } catch (err: any) {
-      alert(err.message || 'Failed to update trek package');
+      toast.error(err.message || 'Failed to update trek package');
     } finally {
       setIsSaving(false);
     }

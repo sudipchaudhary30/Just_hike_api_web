@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/_components/auth/AuthProvider';
 import { toast } from 'react-hot-toast';
 import Button from '@/_components/ui/Button';
@@ -12,19 +12,20 @@ interface ProfileFormData {
   name: string;
   email: string;
   phoneNumber?: string;
-  // image?: FileList;
 }
 
 export default function ProfileUpdateForm() {
   const { user, updateUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewImageFallback, setPreviewImageFallback] = useState<string | null>(null);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm<ProfileFormData>({
     defaultValues: {
       name: user?.name || '',
@@ -33,7 +34,75 @@ export default function ProfileUpdateForm() {
     },
   });
 
-  // Image upload logic removed
+  const getImageUrls = (url?: string | null) => {
+    if (!url) return { primary: null as string | null, fallback: null as string | null };
+    const normalizedUrl = url.trim().replace(/\\/g, '/');
+    const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+    const uploadsIndex = normalizedUrl.indexOf('/uploads/');
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return { primary: normalizedUrl.replace(`${API_BASE_URL}/`, ''), fallback: null };
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return { primary: normalizedUrl, fallback: null };
+    }
+
+    if (normalizedUrl.startsWith('/public/uploads/')) {
+      return {
+        primary: `${API_BASE_URL}${normalizedUrl.replace('/public', '')}`,
+        fallback: normalizedUrl.replace('/public', ''),
+      };
+    }
+
+    if (normalizedUrl.startsWith('/uploads/')) {
+      return { primary: `${API_BASE_URL}${normalizedUrl}`, fallback: normalizedUrl };
+    }
+
+    if (normalizedUrl.startsWith('uploads/')) {
+      return { primary: `${API_BASE_URL}/${normalizedUrl}`, fallback: `/${normalizedUrl}` };
+    }
+
+    if (uploadsIndex !== -1) {
+      return {
+        primary: `${API_BASE_URL}${normalizedUrl.slice(uploadsIndex)}`,
+        fallback: normalizedUrl.slice(uploadsIndex),
+      };
+    }
+
+    return {
+      primary: `${API_BASE_URL}/${normalizedUrl.replace(/^\/+/, '')}`,
+      fallback: `/${normalizedUrl.replace(/^\/+/, '')}`,
+    };
+  };
+
+  useEffect(() => {
+    const existingImage = user?.profilePicture || user?.image;
+    if (existingImage) {
+      const { primary, fallback } = getImageUrls(existingImage);
+      setPreviewImage(primary);
+      setPreviewImageFallback(fallback);
+      return;
+    }
+    setPreviewImage(null);
+    setPreviewImageFallback(null);
+  }, [user?.profilePicture, user?.image]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedImage(file);
+
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewImage(objectUrl);
+      setPreviewImageFallback(null);
+      return;
+    }
+
+    const { primary, fallback } = getImageUrls(user?.profilePicture || user?.image);
+    setPreviewImage(primary);
+    setPreviewImageFallback(fallback);
+  };
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!user?.id) return;
@@ -56,15 +125,19 @@ export default function ProfileUpdateForm() {
         return;
       }
 
-      // Only send JSON, no image upload
-      const headers = { ...getAuthHeaders(token), 'Content-Type': 'application/json' };
+      const formData = new FormData();
+      formData.append('name', data.name || '');
+      formData.append('email', data.email || '');
+      formData.append('phoneNumber', data.phoneNumber || '');
+
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      }
+
+      const headers = { ...getAuthHeaders(token) };
       const response = await fetch(`/api/auth/${user.id}`, {
         method: 'PUT',
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-        }),
+        body: formData,
         headers: headers,
       });
 
@@ -83,14 +156,17 @@ export default function ProfileUpdateForm() {
 
       const updatedUser = result.user || result.data || result.data?.user || result;
 
-      // Map image field if backend returns profilePicture
       if (updatedUser && !updatedUser.image && updatedUser.profilePicture) {
         updatedUser.image = updatedUser.profilePicture;
       }
 
-      // Image upload logic removed
+      if (updatedUser?.profilePicture) {
+        const { primary, fallback } = getImageUrls(updatedUser.profilePicture);
+        setPreviewImage(primary);
+        setPreviewImageFallback(fallback);
+      }
+      setSelectedImage(null);
 
-      // Update local user state
       updateUser(updatedUser);
       toast.success('Profile updated successfully!');
     } catch (error: any) {
@@ -103,9 +179,40 @@ export default function ProfileUpdateForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Profile Image upload removed. Only profile info fields remain. */}
+      <div className="flex flex-col items-center gap-4 p-4 border border-gray-200 rounded-xl bg-gray-50">
+        {previewImage ? (
+          <img
+            src={previewImage}
+            alt="Profile preview"
+            className="w-24 h-24 rounded-full object-cover border-2 border-[#45D1C1]"
+            onError={(e) => {
+              if (previewImageFallback && e.currentTarget.src !== previewImageFallback) {
+                e.currentTarget.src = previewImageFallback;
+                setPreviewImage(previewImageFallback);
+                setPreviewImageFallback(null);
+              }
+            }}
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xl font-semibold">
+            {(user?.name?.[0] || 'U').toUpperCase()}
+          </div>
+        )}
 
-      {/* Form Fields */}
+        <div className="w-full max-w-sm">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Profile Image
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#45D1C1]/10 file:text-[#2a9f93] hover:file:bg-[#45D1C1]/20"
+          />
+          <p className="mt-1 text-xs text-gray-500">JPG, PNG, GIF, or WEBP up to 5MB</p>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6">
         <FormInput
           label="Full Name"

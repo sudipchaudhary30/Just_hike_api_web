@@ -75,7 +75,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         const filepath = path.join(uploadDir, filename);
         await fs.writeFile(filepath, buffer);
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-        imageUrl = `${API_BASE_URL}/uploads/treks/${filename}`;
+        imageUrl = filename.startsWith('http') ? filename : `${API_BASE_URL}/uploads/treks/${filename}`;
         updateData.imageUrl = imageUrl;
         updateData.thumbnailUrl = imageUrl;
       }

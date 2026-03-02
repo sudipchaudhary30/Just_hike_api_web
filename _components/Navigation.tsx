@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from './auth/AuthProvider';
@@ -10,6 +10,54 @@ export default function Navigation(): JSX.Element {
   const router = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
+  const [useAvatarFallback, setUseAvatarFallback] = useState(false);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+
+  const getAvatarSources = (url?: string | null) => {
+    if (!url) return { primary: undefined as string | undefined, fallback: undefined as string | undefined };
+
+    const normalizedUrl = url.trim().replace(/\\/g, '/');
+    const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+    const uploadsIndex = normalizedUrl.indexOf('/uploads/');
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return { primary: normalizedUrl.replace(`${API_BASE_URL}/`, ''), fallback: undefined };
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return { primary: normalizedUrl, fallback: undefined };
+    }
+
+    if (normalizedUrl.startsWith('/public/uploads/')) {
+      const localPath = normalizedUrl.replace('/public', '');
+      return { primary: `${API_BASE_URL}${localPath}`, fallback: localPath };
+    }
+
+    if (normalizedUrl.startsWith('/uploads/')) {
+      return { primary: `${API_BASE_URL}${normalizedUrl}`, fallback: normalizedUrl };
+    }
+
+    if (normalizedUrl.startsWith('uploads/')) {
+      return { primary: `${API_BASE_URL}/${normalizedUrl}`, fallback: `/${normalizedUrl}` };
+    }
+
+    if (uploadsIndex !== -1) {
+      const localPath = normalizedUrl.slice(uploadsIndex);
+      return { primary: `${API_BASE_URL}${localPath}`, fallback: localPath };
+    }
+
+    return { primary: `${API_BASE_URL}/${normalizedUrl.replace(/^\/+/, '')}`, fallback: undefined };
+  };
+
+  const avatarRaw = user?.profilePicture || (user as any)?.image;
+  const { primary: avatarPrimarySource, fallback: avatarFallbackSource } = getAvatarSources(avatarRaw);
+  const avatarSource = useAvatarFallback && avatarFallbackSource ? avatarFallbackSource : avatarPrimarySource;
+
+  useEffect(() => {
+    setAvatarLoadError(false);
+    setUseAvatarFallback(false);
+  }, [avatarRaw]);
 
   if (pathname?.startsWith('/admin')) {
     return <></>;
@@ -137,11 +185,18 @@ export default function Navigation(): JSX.Element {
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center space-x-2 bg-[#45D1C1] text-white px-4 py-2 rounded-lg hover:bg-[#3BC1B1] transition-colors"
                 >
-                  {user?.profilePicture ? (
+                  {avatarSource && !avatarLoadError ? (
                     <img
-                      src={user.profilePicture}
+                      src={avatarSource}
                       alt={user?.name || 'User'}
                       className="w-8 h-8 rounded-full object-cover border border-white"
+                      onError={() => {
+                        if (!useAvatarFallback && avatarFallbackSource) {
+                          setUseAvatarFallback(true);
+                          return;
+                        }
+                        setAvatarLoadError(true);
+                      }}
                     />
                   ) : (
                     <div className="w-8 h-8 bg-white text-[#45D1C1] rounded-full flex items-center justify-center font-bold">

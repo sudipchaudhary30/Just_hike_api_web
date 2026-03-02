@@ -4,6 +4,32 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
+import { toast } from 'react-hot-toast';
+
+const pickBlogImage = (blog: any) => {
+  return (
+    blog?.imageUrl ||
+    blog?.thumbnailUrl ||
+    blog?.thumbnail ||
+    blog?.thumb ||
+    blog?.image ||
+    blog?.featuredImage ||
+    blog?.coverImage ||
+    blog?.imagePath ||
+    blog?.image_path ||
+    blog?.bannerImage ||
+    blog?.heroImage ||
+    blog?.media?.thumbnailUrl ||
+    blog?.media?.imageUrl ||
+    blog?.media?.path ||
+    blog?.images?.thumbnail ||
+    blog?.images?.image ||
+    blog?.images?.cover ||
+    blog?.files?.image ||
+    blog?.files?.thumbnail ||
+    (blog?.imageFileName ? `/uploads/blog/${blog.imageFileName}` : undefined)
+  );
+};
 
 function EditBlogPage() {
   const router = useRouter();
@@ -20,6 +46,7 @@ function EditBlogPage() {
     isPublished: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -31,27 +58,35 @@ function EditBlogPage() {
         const response = await fetch(`/api/admin/blog/${blogId}`, {
           method: 'GET',
           headers,
+          credentials: 'include',
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-          alert(data.error || 'Failed to load blog post');
+          toast.error('Failed to load blog post');
           router.push('/admin/blog');
           return;
         }
 
-        const blog = data.blog || {};
+        const data = await response.json();
+        const blog = data?.blog || data?.data || null;
+
+        if (!blog) {
+          toast.error('Blog post not found');
+          router.push('/admin/blog');
+          return;
+        }
+
         setFormData({
           title: blog.title || '',
           excerpt: blog.excerpt || '',
           content: blog.content || '',
           tags: Array.isArray(blog.tags) ? blog.tags.join(', ') : '',
-          isPublished: blog.isPublished || false,
+          isPublished: blog.status ? blog.status === 'published' : !!blog.isPublished,
         });
+        setCurrentImageUrl(pickBlogImage(blog));
       } catch (error) {
         console.error('Error loading blog:', error);
-        alert('Failed to load blog post');
+        toast.error('Failed to load blog post');
         router.push('/admin/blog');
       } finally {
         setIsFetching(false);
@@ -75,6 +110,8 @@ function EditBlogPage() {
     }
   };
 
+  const previewUrl = imageFile ? URL.createObjectURL(imageFile) : currentImageUrl;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!blogId) return;
@@ -95,6 +132,7 @@ function EditBlogPage() {
 
       if (imageFile) {
         submitData.append('image', imageFile);
+        submitData.append('blogImage', imageFile);
       }
 
       const headers = getAuthHeaders();
@@ -107,14 +145,14 @@ function EditBlogPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Blog post updated successfully!');
+        toast.success('Blog post updated successfully!');
         router.push('/admin/blog');
       } else {
-        alert(data.error || data.message || 'Failed to update blog post');
+        toast.error(data.error || data.message || 'Failed to update blog post');
       }
     } catch (error) {
       console.error('Error updating blog:', error);
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -223,6 +261,16 @@ function EditBlogPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Featured Image
             </label>
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt="Blog preview"
+                className="w-full max-w-sm h-40 object-cover rounded-lg border border-gray-200 mb-3"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : null}
             <input
               type="file"
               accept="image/*"

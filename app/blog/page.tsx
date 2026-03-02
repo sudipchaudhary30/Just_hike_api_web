@@ -11,6 +11,7 @@ interface BlogListItem {
   imageUrl?: string;
   thumbnailUrl?: string;
   authorName: string;
+  authorImage?: string;
   publishedAt?: string;
 }
 
@@ -18,6 +19,36 @@ export default function BlogPage() {
   const [blogs, setBlogs] = useState<BlogListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+
+  const getBackendImageUrl = (url?: string | null) => {
+    if (!url) return undefined;
+    const normalizedUrl = url.trim().replace(/\\/g, '/');
+    const uploadsIndex = normalizedUrl.indexOf('/uploads/');
+    const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return normalizedUrl.replace(`${API_BASE_URL}/`, '');
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return normalizedUrl;
+    }
+
+    if (normalizedUrl.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${normalizedUrl}`;
+    }
+
+    if (normalizedUrl.startsWith('uploads/')) {
+      return `${API_BASE_URL}/${normalizedUrl}`;
+    }
+
+    if (uploadsIndex !== -1) {
+      return `${API_BASE_URL}${normalizedUrl.slice(uploadsIndex)}`;
+    }
+
+    return `${API_BASE_URL}/${normalizedUrl.replace(/^\/+/, '')}`;
+  };
 
   useEffect(() => {
     fetchBlogs();
@@ -26,20 +57,87 @@ export default function BlogPage() {
   const fetchBlogs = async () => {
     try {
       setIsLoading(true);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      const response = await fetch(`${API_BASE_URL}/api/blogs`);
+      const response = await fetch('/api/blog');
       const data = await response.json();
-      const mappedBlogs: BlogListItem[] = (data.data || []).map((blog: any) => ({
-        id: blog._id,
+      const list = data?.data || data?.blogs || data?.results || [];
+      const mappedBlogs: BlogListItem[] = (Array.isArray(list) ? list : []).map((blog: any) => ({
+        id: blog._id || blog.id,
         title: blog.title,
         excerpt: blog.excerpt,
         tags: blog.tags || [],
-        imageUrl: blog.imageUrl,
-        thumbnailUrl: blog.thumbnailUrl,
+        imageUrl:
+          blog.imageUrl ||
+          blog.thumbnailUrl ||
+          blog.image ||
+          blog.featuredImage ||
+          blog.coverImage ||
+          blog.imagePath ||
+          blog.image_path,
+        thumbnailUrl:
+          blog.thumbnailUrl ||
+          blog.imageUrl ||
+          blog.thumbnail ||
+          blog.thumb ||
+          blog.image ||
+          blog.featuredImage ||
+          blog.coverImage,
         authorName: blog.author?.name || 'Admin',
+        authorImage:
+          blog.author?.profilePicture ||
+          blog.author?.image ||
+          blog.author?.profileImage ||
+          blog.author?.avatar ||
+          blog.author?.photo,
         publishedAt: blog.publishedAt || blog.createdAt,
       }));
-      setBlogs(mappedBlogs);
+
+      const token = localStorage.getItem('auth_token');
+
+      if (token) {
+        const enrichedBlogs = await Promise.all(
+          mappedBlogs.map(async (blog, index) => {
+            if (blog.authorImage) {
+              return { ...blog, authorImage: getBackendImageUrl(blog.authorImage) };
+            }
+
+            const sourceBlog = (Array.isArray(list) ? list : [])[index];
+            const authorId = typeof sourceBlog?.author === 'string' ? sourceBlog.author : sourceBlog?.author?._id;
+            if (!authorId) return blog;
+
+            try {
+              const authorResponse = await fetch(`/api/admin/users/${authorId}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+                credentials: 'include',
+              });
+
+              if (!authorResponse.ok) return blog;
+
+              const authorData = await authorResponse.json();
+              const authorUser = authorData?.user;
+              const resolvedAuthorImage =
+                authorUser?.profilePicture ||
+                authorUser?.image ||
+                authorUser?.profileImage ||
+                authorUser?.avatar ||
+                authorUser?.photo;
+
+              return {
+                ...blog,
+                authorName: authorUser?.name || blog.authorName,
+                authorImage: getBackendImageUrl(resolvedAuthorImage),
+              };
+            } catch {
+              return blog;
+            }
+          })
+        );
+
+        setBlogs(enrichedBlogs);
+      } else {
+        setBlogs(mappedBlogs.map((blog) => ({ ...blog, authorImage: getBackendImageUrl(blog.authorImage) })));
+      }
     } catch (error) {
       console.error('Error fetching blogs:', error);
     } finally {
@@ -119,7 +217,7 @@ export default function BlogPage() {
                         <div className="relative h-80 lg:h-96 overflow-hidden">
                           {filteredBlogs[0].thumbnailUrl || filteredBlogs[0].imageUrl ? (
                             <img
-                              src={filteredBlogs[0].thumbnailUrl || filteredBlogs[0].imageUrl}
+                              src={getBackendImageUrl(filteredBlogs[0].imageUrl || filteredBlogs[0].thumbnailUrl)}
                               alt={filteredBlogs[0].title}
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             />
@@ -148,9 +246,20 @@ export default function BlogPage() {
 
                           <div className="flex items-center justify-between pt-6 border-t border-gray-100">
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-[#45D1C1]/20 flex items-center justify-center">
-                                <span className="text-sm font-bold text-[#45D1C1]">{filteredBlogs[0].authorName.charAt(0)}</span>
-                              </div>
+                              {filteredBlogs[0].authorImage ? (
+                                <img
+                                  src={filteredBlogs[0].authorImage}
+                                  alt={filteredBlogs[0].authorName}
+                                  className="h-10 w-10 rounded-full object-cover border border-[#45D1C1]/40"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full bg-[#45D1C1]/20 flex items-center justify-center">
+                                  <span className="text-sm font-bold text-[#45D1C1]">{filteredBlogs[0].authorName.charAt(0)}</span>
+                                </div>
+                              )}
                               <div>
                                 <p className="font-semibold text-gray-900 text-sm">{filteredBlogs[0].authorName}</p>
                                 <p className="text-gray-500 text-xs">
@@ -187,7 +296,7 @@ export default function BlogPage() {
                           <div className="relative h-48 overflow-hidden bg-gradient-to-br from-[#45D1C1]/20 to-[#3BC1B1]/20">
                             {blog.thumbnailUrl || blog.imageUrl ? (
                               <img
-                                src={blog.thumbnailUrl || blog.imageUrl}
+                                src={getBackendImageUrl(blog.imageUrl || blog.thumbnailUrl)}
                                 alt={blog.title}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                               />
@@ -222,9 +331,20 @@ export default function BlogPage() {
 
                             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                               <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-full bg-[#45D1C1]/20 flex items-center justify-center">
-                                  <span className="text-xs font-bold text-[#45D1C1]">{blog.authorName.charAt(0)}</span>
-                                </div>
+                                {blog.authorImage ? (
+                                  <img
+                                    src={blog.authorImage}
+                                    alt={blog.authorName}
+                                    className="h-8 w-8 rounded-full object-cover border border-[#45D1C1]/40"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="h-8 w-8 rounded-full bg-[#45D1C1]/20 flex items-center justify-center">
+                                    <span className="text-xs font-bold text-[#45D1C1]">{blog.authorName.charAt(0)}</span>
+                                  </div>
+                                )}
                                 <div>
                                   <p className="text-xs font-semibold text-gray-900">{blog.authorName}</p>
                                   {blog.publishedAt && (

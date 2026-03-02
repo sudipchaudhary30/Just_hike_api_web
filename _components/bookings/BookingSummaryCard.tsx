@@ -19,6 +19,37 @@ interface BookingSummaryCardProps {
 }
 
 export default function BookingSummaryCard({ trek, participants, totalPrice }: BookingSummaryCardProps) {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+
+  const getFullImageUrl = (url?: string | null) => {
+    if (!url) return undefined;
+    const normalizedUrl = url.trim().replace(/\\/g, '/');
+    const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+    const uploadsIndex = normalizedUrl.indexOf('/uploads/');
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return normalizedUrl.replace(`${API_BASE_URL}/`, '');
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return normalizedUrl;
+    }
+
+    if (normalizedUrl.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${normalizedUrl}`;
+    }
+
+    if (normalizedUrl.startsWith('uploads/')) {
+      return `${API_BASE_URL}/${normalizedUrl}`;
+    }
+
+    if (uploadsIndex !== -1) {
+      return `${API_BASE_URL}${normalizedUrl.slice(uploadsIndex)}`;
+    }
+
+    return `${API_BASE_URL}/${normalizedUrl.replace(/^\/+/, '')}`;
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 sticky top-24">
       <h2 className="text-xl font-bold text-gray-900 mb-4">Booking Summary</h2>
@@ -27,7 +58,7 @@ export default function BookingSummaryCard({ trek, participants, totalPrice }: B
       <div className="mb-4 rounded-lg overflow-hidden">
         {trek.thumbnailUrl || trek.imageUrl ? (
           <img
-            src={trek.thumbnailUrl || trek.imageUrl}
+            src={getFullImageUrl(trek.thumbnailUrl || trek.imageUrl)}
             alt={trek.title}
             className="w-full h-40 object-cover"
           />

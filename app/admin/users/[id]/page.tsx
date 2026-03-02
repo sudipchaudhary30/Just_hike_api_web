@@ -14,6 +14,7 @@ interface User {
   email: string;
   role: string;
   image?: string | null;
+  profilePicture?: string | null;
   phoneNumber?: string;
   createdAt: string;
   updatedAt: string;
@@ -25,6 +26,40 @@ export default function AdminUserDetailPage() {
   const userId = params.id as string;
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+
+  const getFullImageUrl = (url?: string | null) => {
+    if (!url) return null;
+    const normalizedUrl = url.trim().replace(/\\/g, '/');
+    const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+    const uploadsIndex = normalizedUrl.indexOf('/uploads/');
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return normalizedUrl.replace(`${API_BASE_URL}/`, '');
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return normalizedUrl;
+    }
+
+    if (normalizedUrl.startsWith('/public/uploads/')) {
+      return `${API_BASE_URL}${normalizedUrl.replace('/public', '')}`;
+    }
+
+    if (normalizedUrl.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${normalizedUrl}`;
+    }
+
+    if (normalizedUrl.startsWith('uploads/')) {
+      return `${API_BASE_URL}/${normalizedUrl}`;
+    }
+
+    if (uploadsIndex !== -1) {
+      return `${API_BASE_URL}${normalizedUrl.slice(uploadsIndex)}`;
+    }
+
+    return `${API_BASE_URL}/${normalizedUrl.replace(/^\/+/, '')}`;
+  };
 
   useEffect(() => {
     fetchUser();
@@ -156,9 +191,9 @@ export default function AdminUserDetailPage() {
             <div className="space-y-6">
               {/* Profile Image */}
               <div className="flex justify-center">
-                {user.image ? (
+                {user.image || user.profilePicture ? (
                   <img
-                    src={user.image}
+                    src={getFullImageUrl(user.image || user.profilePicture) || undefined}
                     alt={user.name}
                     className="w-32 h-32 rounded-full object-cover border-4 border-green-600"
                   />

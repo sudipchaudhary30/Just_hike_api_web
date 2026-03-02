@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
+import { toast } from 'react-hot-toast';
 
 function EditGuidePage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ function EditGuidePage() {
         const data = await response.json();
 
         if (!response.ok) {
-          alert(data.error || 'Failed to load guide details');
+          toast.error(data.error || 'Failed to load guide details');
           router.push('/admin/guides');
           return;
         }
@@ -53,7 +54,7 @@ function EditGuidePage() {
         });
       } catch (error) {
         console.error('Error loading guide:', error);
-        alert('Failed to load guide details');
+        toast.error('Failed to load guide details');
         router.push('/admin/guides');
       } finally {
         setIsFetching(false);
@@ -110,14 +111,14 @@ function EditGuidePage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Guide updated successfully!');
+        toast.success('Guide updated successfully!');
         router.push('/admin/guides');
       } else {
-        alert(data.error || data.message || 'Failed to update guide');
+        toast.error(data.error || data.message || 'Failed to update guide');
       }
     } catch (error) {
       console.error('Error updating guide:', error);
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsLoading(false);
     }

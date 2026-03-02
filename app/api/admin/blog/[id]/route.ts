@@ -28,6 +28,29 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     if (!backendResponse.ok) {
+      try {
+        const listResponse = await fetch(`${API_BASE_URL}/api/blogs/admin/all`, {
+          method: 'GET',
+          headers: {
+            ...(token ? { Authorization: token } : {}),
+          },
+        });
+
+        if (listResponse.ok) {
+          const listPayload = await listResponse.json();
+          const list = listPayload?.data || listPayload?.blogs || listPayload?.results || [];
+          const found = Array.isArray(list)
+            ? list.find((item: any) => String(item?._id || item?.id) === String(params.id))
+            : null;
+
+          if (found) {
+            return NextResponse.json({ blog: found }, { status: 200 });
+          }
+        }
+      } catch {
+        // Keep existing backend error handling below if fallback fails
+      }
+
       let backendError = backendResponse.statusText || 'Failed to fetch blog';
       try {
         const payload = await backendResponse.json();
@@ -89,13 +112,19 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     if (updateData.title !== undefined) backendFormData.append('title', String(updateData.title));
     if (updateData.excerpt !== undefined) backendFormData.append('excerpt', String(updateData.excerpt));
     if (updateData.content !== undefined) backendFormData.append('content', String(updateData.content));
-    if (updateData.isPublished !== undefined) backendFormData.append('isPublished', String(updateData.isPublished));
+    if (updateData.isPublished !== undefined) {
+      const isPublished = String(updateData.isPublished) === 'true';
+      backendFormData.append('isPublished', String(isPublished));
+      backendFormData.append('status', isPublished ? 'published' : 'draft');
+    }
     backendFormData.append('tags', updateData.tags.join(', '));
 
     if (incomingImageFile) {
       const bytes = await incomingImageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      backendFormData.append('image', new File([buffer], incomingImageFile.name, { type: incomingImageFile.type }));
+      const forwardedFile = new File([buffer], incomingImageFile.name, { type: incomingImageFile.type });
+      backendFormData.append('image', forwardedFile);
+      backendFormData.append('blogImage', forwardedFile);
     }
 
     let backendResponse: Response;

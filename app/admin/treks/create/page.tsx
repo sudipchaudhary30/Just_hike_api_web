@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
+import { toast } from 'react-hot-toast';
 
 
 interface TrekCreateFormData {
@@ -81,7 +82,7 @@ function CreateTrekPage() {
         token = localStorage.getItem('token') || sessionStorage.getItem('token');
       }
       if (!token) {
-        alert('No JWT token found. Please log in again.');
+        toast.error('No JWT token found. Please log in again.');
         setIsSaving(false);
         return;
       }
@@ -103,14 +104,15 @@ function CreateTrekPage() {
       if (data.data) {
         setUploadedImageUrl(data.data.imageUrl || null);
         setUploadedThumbnailUrl(data.data.thumbnailUrl || null);
+        toast.success('Image uploaded successfully!');
       } else {
         setUploadedImageUrl(null);
         setUploadedThumbnailUrl(null);
       }
-      alert('Trek package created successfully!');
+      toast.success('Trek package created successfully!');
       setTimeout(() => router.push('/admin/treks'), 2000);
     } catch (error: any) {
-      alert(error.message || 'Failed to create trek package');
+      toast.error(error.message || 'Failed to create trek package');
     } finally {
       setIsSaving(false);
     }

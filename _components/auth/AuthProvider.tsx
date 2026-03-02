@@ -10,6 +10,7 @@ interface User {
   email: string;
   role?: string;
   profilePicture?: string;
+  image?: string;
   phoneNumber?: string;
 }
 

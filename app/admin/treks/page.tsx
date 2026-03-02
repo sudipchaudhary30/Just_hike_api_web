@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
+import { toast } from 'react-hot-toast';
 interface TrekAdminListItem {
   id: string;
   title: string;
@@ -28,8 +29,67 @@ function AdminTreksPage() {
       return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
     };
   const [treks, setTreks] = useState<TrekAdminListItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
   const [isLoading, setIsLoading] = useState(true);
+  const ITEMS_PER_PAGE = 10;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim().toLowerCase());
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const highlightMatch = (text: string) => {
+    if (!debouncedQuery) return text;
+
+    const lowerText = text.toLowerCase();
+    const matchIndex = lowerText.indexOf(debouncedQuery);
+
+    if (matchIndex === -1) return text;
+
+    const before = text.slice(0, matchIndex);
+    const match = text.slice(matchIndex, matchIndex + debouncedQuery.length);
+    const after = text.slice(matchIndex + debouncedQuery.length);
+
+    return (
+      <>
+        {before}
+        <span className="bg-[#45D1C1]/20 text-gray-900 rounded px-0.5">{match}</span>
+        {after}
+      </>
+    );
+  };
+
+  const filteredTreks = treks.filter((trek) => {
+    if (!debouncedQuery) return true;
+
+    return (
+      trek.title.toLowerCase().includes(debouncedQuery) ||
+      trek.location.toLowerCase().includes(debouncedQuery) ||
+      trek.difficulty.toLowerCase().includes(debouncedQuery) ||
+      String(trek.price).includes(debouncedQuery) ||
+      String(trek.durationDays).includes(debouncedQuery)
+    );
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filteredTreks.length / ITEMS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const visibleTreks = filteredTreks.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedQuery]);
 
   useEffect(() => {
     fetchTreks();
@@ -95,13 +155,14 @@ function AdminTreksPage() {
       });
 
       if (response.ok) {
-        alert('Trek package deleted successfully');
+        toast.success('Trek package deleted successfully');
         fetchTreks();
       } else {
-        alert('Failed to delete trek package');
+        toast.error('Failed to delete trek package');
       }
     } catch (error) {
       console.error('Error deleting trek:', error);
+      toast.error('Error deleting trek package');
     }
   };
 
@@ -124,6 +185,20 @@ function AdminTreksPage() {
             >
               ＋ New Trek
             </Link>
+          </div>
+
+          <div className="mt-6">
+            <label htmlFor="trek-search" className="block text-sm font-semibold text-gray-700 mb-2">
+              Search Trek Packages
+            </label>
+            <input
+              id="trek-search"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by title, location, difficulty, price, or duration..."
+              className="w-full md:max-w-md px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#45D1C1] focus:border-transparent transition-all duration-300"
+            />
           </div>
         </div>
 
@@ -168,7 +243,7 @@ function AdminTreksPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {treks.map((trek) => (
+                  {visibleTreks.map((trek) => (
                     <tr key={trek.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -205,12 +280,12 @@ function AdminTreksPage() {
                             )}
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{trek.title}</div>
+                            <div className="text-sm font-medium text-gray-900">{highlightMatch(trek.title)}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {trek.location}
+                        {highlightMatch(trek.location)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {trek.durationDays} days
@@ -223,7 +298,7 @@ function AdminTreksPage() {
                           ${trek.difficulty === 'easy' ? 'bg-green-100 text-green-800' : 
                             trek.difficulty === 'moderate' ? 'bg-yellow-100 text-yellow-800' : 
                             'bg-red-100 text-red-800'}`}>
-                          {trek.difficulty}
+                          {highlightMatch(trek.difficulty)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -271,6 +346,42 @@ function AdminTreksPage() {
             >
               Create First Trek Package
             </Link>
+          </div>
+        )}
+
+        {!isLoading && treks.length > 0 && filteredTreks.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-lg shadow mt-6">
+            <p className="text-gray-600 text-lg font-medium">No matching treks found</p>
+            <p className="text-gray-500 mt-2">Try a different keyword for your search.</p>
+          </div>
+        )}
+
+        {!isLoading && (
+          <div className="flex items-center justify-center gap-4 mt-4 flex-wrap">
+            <p className="text-sm text-gray-600">
+              {filteredTreks.length > 0
+                ? `Showing ${startIndex + 1}-${Math.min(startIndex + ITEMS_PER_PAGE, filteredTreks.length)} of ${filteredTreks.length}`
+                : 'Showing 0 of 0'}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-700 font-medium">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg text-white font-semibold bg-gradient-to-r from-[#45D1C1] to-[#3BC1B1] hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

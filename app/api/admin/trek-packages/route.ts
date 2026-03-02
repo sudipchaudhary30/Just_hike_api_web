@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         const filepath = path.join(uploadDir, filename);
         await fs.writeFile(filepath, buffer);
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-        imageUrl = `${API_BASE_URL}/uploads/treks/${filename}`;
+        imageUrl = filename.startsWith('http') ? filename : `${API_BASE_URL}/uploads/treks/${filename}`;
         packageData.imageUrl = imageUrl;
         packageData.thumbnailUrl = imageUrl;
       }
@@ -173,7 +173,7 @@ export async function PATCH(request: NextRequest) {
         const filepath = path.join(uploadDir, filename);
         await fs.writeFile(filepath, buffer);
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-        imageUrl = `${API_BASE_URL}/uploads/treks/${filename}`;
+        imageUrl = filename.startsWith('http') ? filename : `${API_BASE_URL}/uploads/treks/${filename}`;
         packageData.imageUrl = imageUrl;
         packageData.thumbnailUrl = imageUrl;
       }

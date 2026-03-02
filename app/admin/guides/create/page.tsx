@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
+import { toast } from 'react-hot-toast';
 
 function CreateGuidePage() {
     const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
@@ -82,15 +83,16 @@ function CreateGuidePage() {
         if (data.data) {
           setUploadedImageUrl(getFullUrl(data.data.imageUrl || null));
           setUploadedThumbnailUrl(getFullUrl(data.data.thumbnailUrl || null));
+          toast.success('Image uploaded successfully!');
         }
-        alert('Guide created successfully!');
+        toast.success('Guide created successfully!');
         setTimeout(() => router.push('/admin/guides'), 1500);
       } else {
-        alert(data.message || 'Failed to create guide');
+        toast.error(data.message || 'Failed to create guide');
       }
     } catch (error) {
       console.error('Error creating guide:', error);
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsLoading(false);
     }

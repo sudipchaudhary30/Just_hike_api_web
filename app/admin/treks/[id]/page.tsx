@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
 import Image from 'next/image';
+import { toast } from 'react-hot-toast';
 
 interface TrekEditFormData {
   title: string;
@@ -22,9 +23,19 @@ interface TrekEditFormData {
 function EditTrekPage() {
   const getFullUrl = (url: string | null) => {
     if (!url) return null;
-    // Remove any leading domain from url if present
-    url = url.replace(/^https?:\/\/.+?\//, '/');
-    return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+    const normalizedUrl = url.trim();
+    const baseUrl = 'http://localhost:5050';
+
+    const doubleBase = `${baseUrl}/${baseUrl}`;
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return normalizedUrl.replace(`${baseUrl}/`, '');
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return normalizedUrl;
+    }
+
+    return `${baseUrl}/${normalizedUrl.replace(/^\/+/, '')}`;
   };
 
   const params = useParams();
@@ -84,7 +95,7 @@ function EditTrekPage() {
         setCurrentImage(getFullUrl(pkg.imageUrl || null));
         setCurrentThumbnail(getFullUrl(pkg.thumbnailUrl || null));
       } catch (err: any) {
-        alert(err.message || 'Failed to load trek');
+        toast.error(err.message || 'Failed to load trek');
       } finally {
         setIsLoading(false);
       }
@@ -145,10 +156,10 @@ function EditTrekPage() {
         setImageFile(null); // Clear the file input
       }
       
-      alert('Trek package updated successfully!');
+      toast.success('Trek package updated successfully!');
       router.push(`/admin/treks/${id}`);
     } catch (err: any) {
-      alert(err.message || 'Failed to update trek package');
+      toast.error(err.message || 'Failed to update trek package');
     } finally {
       setIsSaving(false);
     }

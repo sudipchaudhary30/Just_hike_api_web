@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
 import { getAuthHeaders } from '@/lib/auth';
+import { toast } from 'react-hot-toast';
 
 function CreateBlogPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ function CreateBlogPage() {
     isPublished: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -27,7 +29,9 @@ function CreateBlogPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setImageFile(e.target.files[0] || null);
+      const selected = e.target.files[0] || null;
+      setImageFile(selected);
+      setImagePreviewUrl(selected ? URL.createObjectURL(selected) : null);
     }
   };
 
@@ -50,28 +54,31 @@ function CreateBlogPage() {
       submitData.append('tags', tagsArray.join(', '));
 
       if (imageFile) {
+        submitData.append('image', imageFile);
         submitData.append('blogImage', imageFile);
       }
 
       const headers = getAuthHeaders();
-      const response = await fetch('http://localhost:5050/api/blogs', {
+      const response = await fetch('/api/admin/blog', {
         method: 'POST',
         headers,
         body: submitData,
-        // If your backend is on a different domain, you may need to add credentials: 'include',
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json')
+        ? await response.json()
+        : { message: await response.text() };
 
       if (response.ok) {
-        alert('Blog post created successfully!');
+        toast.success('Blog post created successfully!');
         router.push('/admin/blog');
       } else {
-        alert(data.message || 'Failed to create blog post');
+        toast.error(data.error || data.message || 'Failed to create blog post');
       }
     } catch (error) {
       console.error('Error creating blog:', error);
-      alert('An error occurred');
+      toast.error('An error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -156,6 +163,13 @@ function CreateBlogPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Featured Image *
             </label>
+            {imagePreviewUrl ? (
+              <img
+                src={imagePreviewUrl}
+                alt="Blog image preview"
+                className="w-full max-w-sm h-40 object-cover rounded-lg border border-gray-200 mb-3"
+              />
+            ) : null}
             <input
               type="file"
               accept="image/*"

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/_components/auth/ProtectedRoute';
+import { toast } from 'react-hot-toast';
 
 interface GuideAdminItem {
   id: string;
@@ -18,6 +19,24 @@ interface GuideAdminItem {
 function AdminGuidesPage() {
   const [guides, setGuides] = useState<GuideAdminItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+
+  const getFullImageUrl = (url?: string | null) => {
+    if (!url) return undefined;
+
+    const normalizedUrl = url.trim();
+    const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return normalizedUrl.replace(`${API_BASE_URL}/`, '');
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return normalizedUrl;
+    }
+
+    return `${API_BASE_URL}/${normalizedUrl.replace(/^\/+/, '')}`;
+  };
 
   useEffect(() => {
     fetchGuides();
@@ -26,7 +45,6 @@ function AdminGuidesPage() {
   const fetchGuides = async () => {
     try {
       setIsLoading(true);
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
       const token = localStorage.getItem('auth_token');
       
       const controller = new AbortController();
@@ -82,13 +100,14 @@ function AdminGuidesPage() {
       });
 
       if (response.ok) {
-        alert('Guide deleted successfully');
+        toast.success('Guide deleted successfully');
         fetchGuides();
       } else {
-        alert('Failed to delete guide');
+        toast.error('Failed to delete guide');
       }
     } catch (error) {
       console.error('Error deleting guide:', error);
+      toast.error('Error deleting guide');
     }
   };
 
@@ -132,7 +151,7 @@ function AdminGuidesPage() {
                 <div className="relative h-48">
                   {guide.imageUrl ? (
                     <img
-                      src={guide.imageUrl}
+                      src={getFullImageUrl(guide.imageUrl)}
                       alt={guide.name}
                       className="w-full h-full object-cover"
                     />

@@ -27,20 +27,43 @@ export default function TrekDetailPage() {
     // If imageUrl/thumbnailUrl is a relative path, prepend http://localhost:5050/
     const getFullUrl = (url: string | undefined | null) => {
       if (!url) return undefined;
-      if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      return `http://localhost:5050/${url.replace(/^\/+/, '')}`;
+      const normalizedUrl = url.trim();
+      const baseUrl = 'http://localhost:5050';
+      // If the URL starts with http and contains the base twice, remove the first base
+      if (normalizedUrl.startsWith('http')) {
+        // Remove repeated base if present
+        const doubleBase = `${baseUrl}/${baseUrl}`;
+        if (normalizedUrl.startsWith(doubleBase)) {
+          return normalizedUrl.replace(`${baseUrl}/`, '');
+        }
+        return normalizedUrl;
+      }
+      if (normalizedUrl.startsWith(baseUrl)) return normalizedUrl;
+      return `${baseUrl}/${normalizedUrl.replace(/^\/+/, '')}`;
     };
 
     // Helper to get the best image for thumbnail (prefer thumbnail, fallback to main image)
     const getThumbnailUrl = () => {
-      if (trek?.thumbnailUrl) return getFullUrl(trek.thumbnailUrl);
-      if (trek?.imageUrl) return getFullUrl(trek.imageUrl);
+      if (trek?.thumbnailUrl) {
+        if (trek.thumbnailUrl.startsWith('http')) return trek.thumbnailUrl;
+        return getFullUrl(trek.thumbnailUrl);
+      }
+      if (trek?.imageUrl) {
+        if (trek.imageUrl.startsWith('http')) return trek.imageUrl;
+        return getFullUrl(trek.imageUrl);
+      }
       return undefined;
     };
     // Helper to get the best image for main (prefer main, fallback to thumbnail)
     const getMainImageUrl = () => {
-      if (trek?.imageUrl) return getFullUrl(trek.imageUrl);
-      if (trek?.thumbnailUrl) return getFullUrl(trek.thumbnailUrl);
+      if (trek?.imageUrl) {
+        if (trek.imageUrl.startsWith('http')) return trek.imageUrl;
+        return getFullUrl(trek.imageUrl);
+      }
+      if (trek?.thumbnailUrl) {
+        if (trek.thumbnailUrl.startsWith('http')) return trek.thumbnailUrl;
+        return getFullUrl(trek.thumbnailUrl);
+      }
       return undefined;
     };
   const [trekImage, setTrekImage] = useState<File | null>(null);
@@ -81,17 +104,26 @@ export default function TrekDetailPage() {
       // The data structure might be different - let's check all possibilities
       const trekData = data.data || data.package || data;
       console.log('Trek data extracted:', trekData);
+      console.log('Raw imageUrl from backend:', trekData.imageUrl || trekData.imageurl || trekData.image_url || trekData.image);
+      console.log('Raw thumbnailUrl from backend:', trekData.thumbnailUrl || trekData.thumbnailurl || trekData.thumbnail_url || trekData.thumbnail);
       if (trekData) {
         // Check all possible field names for the image
         let imageUrl = trekData.imageUrl || trekData.imageurl || trekData.image_url || trekData.image;
         // If we have imageFileName but no imageUrl, construct it
         if (!imageUrl && trekData.imageFileName) {
-          imageUrl = `${API_BASE_URL}/uploads/treks/${trekData.imageFileName}`;
+          imageUrl = `/uploads/treks/${trekData.imageFileName}`;
         }
         // Also check for thumbnail
         let thumbnailUrl = trekData.thumbnailUrl || trekData.thumbnailurl || trekData.thumbnail_url || trekData.thumbnail;
         if (thumbnailUrl && !thumbnailUrl.startsWith('http')) {
-          thumbnailUrl = `${API_BASE_URL}${thumbnailUrl}`;
+          thumbnailUrl = `/uploads/treks/${thumbnailUrl.replace(/^\/uploads\/treks\//, '')}`;
+        }
+        // Normalize URL in all cases (relative, absolute, or accidental double-base)
+        if (imageUrl) {
+          imageUrl = getFullUrl(imageUrl);
+        }
+        if (thumbnailUrl) {
+          thumbnailUrl = getFullUrl(thumbnailUrl);
         }
         console.log('Final Image URL to use:', imageUrl);
         console.log('Final Thumbnail URL to use:', thumbnailUrl);

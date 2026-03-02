@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -96,7 +97,7 @@ export default function RegisterForm() {
       localStorage.setItem('user_data', JSON.stringify(data.data));
       
       // Show success message and redirect
-      alert('Registration successful! You can now login.');
+      toast.success('Registration successful! You can now login.');
       router.push('/auth/login');
       
     } catch (err: any) {

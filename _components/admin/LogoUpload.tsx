@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 
 interface LogoUploadProps {
   onLogoChange: (imageUrl: string) => void;
@@ -18,12 +19,12 @@ export default function LogoUpload({ onLogoChange, currentLogo }: LogoUploadProp
 
     // Validate file
     if (!file.type.startsWith('image/')) {
-      alert('Please upload an image file');
+      toast.error('Please upload an image file');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      alert('File size must be less than 5MB');
+      toast.error('File size must be less than 5MB');
       return;
     }
 

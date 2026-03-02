@@ -21,12 +21,6 @@ export async function POST(request: NextRequest) {
       const { file, fields } = await parseFormData(request);
       blogData = fields;
       imageFile = file;
-      // Save blog image if present
-      if (imageFile) {
-        const { saveFile } = await import('@/lib/utils/multer');
-        const imageUrl = await saveFile(imageFile, 'blog');
-        blogData.image = imageUrl;
-      }
     } else {
       blogData = await request.json();
     }
@@ -63,7 +57,9 @@ export async function POST(request: NextRequest) {
     if (imageFile) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      backendFormData.append('image', new File([buffer], imageFile.name, { type: imageFile.type }));
+      const forwardedFile = new File([buffer], imageFile.name, { type: imageFile.type });
+      backendFormData.append('image', forwardedFile);
+      backendFormData.append('blogImage', forwardedFile);
     }
 
     const backendResponse = await fetch(`${API_BASE_URL}/api/blogs`, {
@@ -75,7 +71,27 @@ export async function POST(request: NextRequest) {
     });
 
     if (!backendResponse.ok) {
-      throw new Error(`Failed to create blog post in backend: ${backendResponse.statusText}`);
+      let backendError = backendResponse.statusText || 'Failed to create blog post in backend';
+      try {
+        const payload = await backendResponse.json();
+        backendError = payload?.message || payload?.error || backendError;
+      } catch {
+        try {
+          const text = await backendResponse.text();
+          if (text) backendError = text;
+        } catch {
+          // ignore text parse failures
+        }
+      }
+
+      return NextResponse.json(
+        {
+          error: backendError,
+          backendStatus: backendResponse.status,
+          backendPath: '/api/blogs',
+        },
+        { status: backendResponse.status }
+      );
     }
 
     const backendData = await backendResponse.json();
@@ -84,7 +100,10 @@ export async function POST(request: NextRequest) {
       blog: backendData.data || backendData.blog || backendData 
     }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to create blog post' }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || 'Failed to create blog post' },
+      { status: 500 }
+    );
   }
 }
 
@@ -103,31 +122,44 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    // TODO: Fetch from database
-    const blogs = [
-      {
-        id: '1',
-        title: 'Top 10 Trekking Tips for Beginners',
-        slug: 'top-10-trekking-tips-for-beginners',
-        content: 'Detailed content here...',
-        excerpt: 'Essential tips for your first trek',
-        author: 'Admin User',
-        authorId: '1',
-        image: '/uploads/blog/blog-1.jpg',
-        category: 'Tips & Guides',
-        tags: ['trekking', 'beginners', 'tips'],
-        isPublished: true,
-        publishedAt: new Date().toISOString(),
-        views: 150,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-    ];
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+    const token = request.headers.get('authorization');
 
-    return NextResponse.json({
-      blogs,
-      pagination: { page, limit, total: blogs.length, totalPages: Math.ceil(blogs.length / limit) },
-    }, { status: 200 });
+    const backendResponse = await fetch(`${API_BASE_URL}/api/blogs/admin/all?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        ...(token ? { Authorization: token } : {}),
+      },
+    });
+
+    if (!backendResponse.ok) {
+      let backendError = backendResponse.statusText || 'Failed to fetch blogs';
+      try {
+        const payload = await backendResponse.json();
+        backendError = payload?.message || payload?.error || backendError;
+      } catch {
+        // keep status text
+      }
+
+      return NextResponse.json({ error: backendError }, { status: backendResponse.status });
+    }
+
+    const backendData = await backendResponse.json();
+    const list = backendData?.data || backendData?.blogs || backendData?.results || [];
+    const pagination = backendData?.pagination || {
+      page,
+      limit,
+      total: Array.isArray(list) ? list.length : 0,
+      totalPages: Array.isArray(list) ? Math.ceil(list.length / limit) : 0,
+    };
+
+    return NextResponse.json(
+      {
+        data: Array.isArray(list) ? list : [],
+        pagination,
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
