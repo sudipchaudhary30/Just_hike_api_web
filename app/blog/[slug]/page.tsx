@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { getAuthToken } from '@/lib/auth';
 
 interface BlogDetail {
   id: string;
@@ -25,6 +26,40 @@ export default function BlogDetailPage() {
   const [blog, setBlog] = useState<BlogDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
+
+  const getBackendImageUrl = (url?: string | null) => {
+    if (!url) return undefined;
+    const normalizedUrl = url.trim().replace(/\\/g, '/');
+    const doubleBase = `${API_BASE_URL}/${API_BASE_URL}`;
+    const uploadsIndex = normalizedUrl.indexOf('/uploads/');
+
+    if (normalizedUrl.startsWith(doubleBase)) {
+      return normalizedUrl.replace(`${API_BASE_URL}/`, '');
+    }
+
+    if (normalizedUrl.startsWith('http://') || normalizedUrl.startsWith('https://')) {
+      return normalizedUrl;
+    }
+
+    if (normalizedUrl.startsWith('/public/uploads/')) {
+      return `${API_BASE_URL}${normalizedUrl.replace('/public', '')}`;
+    }
+
+    if (normalizedUrl.startsWith('/uploads/')) {
+      return `${API_BASE_URL}${normalizedUrl}`;
+    }
+
+    if (normalizedUrl.startsWith('uploads/')) {
+      return `${API_BASE_URL}/${normalizedUrl}`;
+    }
+
+    if (uploadsIndex !== -1) {
+      return `${API_BASE_URL}${normalizedUrl.slice(uploadsIndex)}`;
+    }
+
+    return `${API_BASE_URL}/${normalizedUrl.replace(/^\/+/, '')}`;
+  };
 
   useEffect(() => {
     fetchBlogDetails();
@@ -37,28 +72,70 @@ export default function BlogDetailPage() {
         setBlog(null);
         return;
       }
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5050';
-      const response = await fetch(`${API_BASE_URL}/api/blogs/${blogId}`);
+      const response = await fetch(`/api/blog/${blogId}`);
       const data = await response.json();
-      const b = data.data;
+      const b = data?.data || data?.blog || null;
       if (b) {
         // Try multiple possible author image field names
-        let authorImg = b.author?.image || b.author?.profileImage || b.author?.avatar || b.author?.photo;
-        
-        // If image exists and is relative path, prepend API URL
-        if (authorImg && !authorImg.startsWith('http')) {
-          authorImg = `${API_BASE_URL}${authorImg.startsWith('/') ? '' : '/'}${authorImg}`;
+        let authorImg =
+          b.author?.profilePicture ||
+          b.author?.image ||
+          b.author?.profileImage ||
+          b.author?.avatar ||
+          b.author?.photo;
+
+        if (!authorImg && typeof b.author === 'string') {
+          try {
+            const token = getAuthToken();
+            if (token) {
+              const authorResponse = await fetch(`/api/admin/users/${b.author}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+                credentials: 'include',
+              });
+
+              if (authorResponse.ok) {
+                const authorData = await authorResponse.json();
+                const authorUser = authorData?.user;
+                authorImg =
+                  authorUser?.profilePicture ||
+                  authorUser?.image ||
+                  authorUser?.profileImage ||
+                  authorUser?.avatar ||
+                  authorUser?.photo;
+              }
+            }
+          } catch (authorError) {
+            console.error('Error fetching blog author details:', authorError);
+          }
         }
+
+        authorImg = getBackendImageUrl(authorImg);
         
         setBlog({
-          id: b._id,
+          id: b._id || b.id,
           title: b.title,
           content: b.content,
           excerpt: b.excerpt,
           tags: b.tags || [],
-          imageUrl: b.imageUrl,
-          thumbnailUrl: b.thumbnailUrl,
-          authorName: b.author?.name || 'Admin',
+          imageUrl:
+            b.imageUrl ||
+            b.thumbnailUrl ||
+            b.image ||
+            b.featuredImage ||
+            b.coverImage ||
+            b.imagePath ||
+            b.image_path,
+          thumbnailUrl:
+            b.thumbnailUrl ||
+            b.imageUrl ||
+            b.thumbnail ||
+            b.thumb ||
+            b.image ||
+            b.featuredImage ||
+            b.coverImage,
+          authorName: b.author?.name || (typeof b.authorName === 'string' ? b.authorName : 'Admin'),
           authorImage: authorImg,
           publishedAt: b.publishedAt || b.createdAt,
           createdAt: b.createdAt,
