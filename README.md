@@ -1,3 +1,6 @@
 ( JustHike )
 JustHike is a modern hiking discovery platform built with Next.js. Users can browse trek packages, read hiking blogs, and book adventures. Features include user authentication, profile management, admin dashboard with CRUD operations, and responsive design. State management via React Context, secure JWT handling, and seamless integration with Node.js/Express backend. Perfect for outdoor enthusiasts and trail guides.
 
+JustHike Backend Api: https://github.com/sudipchaudhary30/just_hike_backend
+
+
